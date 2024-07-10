@@ -21,7 +21,7 @@ function showDashboard(dashboardName) {
 }
 
 function logout() {
-    window.location.href = '../../index.html';
+    window.location.href = '../index.html';
 }
 
 document.addEventListener("DOMContentLoaded", function() {
