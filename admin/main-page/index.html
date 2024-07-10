@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EDBS | Main Page</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+</head>
+<body>
+
+<div class="sidebar">
+
+    <!-- Fetch these values from the database -->
+
+    <div class="circle-frame">
+        <img src="pfp.png" alt="Your Image">
+    </div>
+
+    <h3 class="username">Erdem Sezen</h3>
+    <h4 class="rank">-Admin-</h4>
+
+    <h2>E-DBS<br>ENKA Merkez</h2>
+
+    <ul>
+        <li><a href="#" onclick="showDashboard('Backup Requests')">Backup Requests</a></li>
+        <li><a href="#" onclick="showDashboard('Make Request')">Make Request</a></li>
+        <li><a href="#" onclick="showDashboard('See Logs')">See Logs</a></li>
+        <li><a href="#" onclick="showDashboard('Take Backup')">Take Backup</a></li>
+        <li><a href="#" onclick="showDashboard('Edit/Create Users')">Edit/Create Users</a></li>
+        <li><a href="#" onclick="logout()">Log out</a></li>
+
+    </ul>
+</div>
+
+<div class="content">
+
+    <div class="header">
+        <h1 id="dashboardTitle">Backup Requests</h1>
+    </div>
+
+    <div class="requests" id="backuprequests">
+        <!-- TODO: filter dropdown menu and search-->
+        <div class="table-container">
+            <table class="sortable-table">
+                <thead> 
+                    <tr>
+                        <th data-sort-by="backupMessage">Backup Message</th>
+                        <th data-sort-by="date">Date</th>
+                        <th data-sort-by="server">Server</th>
+                        <th data-sort-by="status">Status</th>
+                      </tr>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Backup 1</td>
+                        <td>2023-01-01</td>
+                        <td>Server A</td>
+                        <td>Completed</td>
+                    </tr>
+                    <tr>
+                        <td>Backup 2</td>
+                        <td>2023-01-02</td>
+                        <td>Server B</td>
+                        <td>Error</td>
+                    </tr>
+                    <tr>
+                        <td>Backup 3</td>
+                        <td>2023-01-03</td>
+                        <td>Server C</td>
+                        <td>Not Completed</td>
+                    </tr>
+                    <tr>
+                        <td>Backup 1</td>
+                        <td>2023-01-01</td>
+                        <td>Server A</td>
+                        <td>Completed</td>
+                    </tr>
+                    <tr>
+                        <td>Backup 2</td>
+                        <td>2023-01-02</td>
+                        <td>Server B</td>
+                        <td>Error</td>
+                    </tr>
+                    <tr>
+                        <td>Backup 3</td>
+                        <td>2023-01-03</td>
+                        <td>Server C</td>
+                        <td>Not Completed</td>
+                    </tr>
+                    <tr>
+                        <td>Backup 1</td>
+                        <td>2023-01-01</td>
+                        <td>Server A</td>
+                        <td>Completed</td>
+                    </tr>
+                    <tr>
+                        <td>Backup 2</td>
+                        <td>2023-01-02</td>
+                        <td>Server B</td>
+                        <td>Error</td>
+                    </tr>
+                    <tr>
+                        <td>Backup 3</td>
+                        <td>2023-01-03</td>
+                        <td>Server C</td>
+                        <td>Not Completed</td>
+                    </tr>
+                    <!-- Add more rows as needed -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="dashboard" id="makerequest" style="display: none;">
+        <p>This is Make Request</p>
+    </div>
+
+    <div class="dashboard" id="seelogs" style="display: none;">
+        <p>This is See Logs</p>
+    </div>
+
+    <div class="dashboard" id="takebackup" style="display: none;">
+        <p>This is Take Backup</p>
+    </div>
+
+    <div class="dashboard" id="edit/createusers" style="display: none;">
+        <p>This is Edit/Create Users</p>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>

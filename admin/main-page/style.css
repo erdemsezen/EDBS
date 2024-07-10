@@ -1,0 +1,156 @@
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.sidebar {
+  width: 200px; 
+  height: 100vh;
+  background-color: #f0f0f0;
+  padding: 20px;
+  text-align: center;
+  position: fixed; /* Fixed positioning */
+  /* top: 0;
+  left: 0; */
+  overflow-y: auto;
+}
+
+.circle-frame {
+  width: 175px;
+  height: 175px;
+  border: solid 1px black;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+  margin: auto auto 20px auto;
+}
+
+.sidebar h3 {
+  margin: auto auto 5px auto;
+}
+
+.sidebar h4{
+  margin: auto auto 60px auto;
+}
+
+.circle-frame img {
+  display: block;
+  width: 100%;  
+  height: 100%;
+  object-fit: cover; 
+}
+
+.sidebar h2 {
+  padding-top: 20px;
+  padding-bottom: 20px;
+  color: #333;
+  /* border-top: 1px solid #aaa;
+  border-bottom: 1px solid #aaa; */
+}
+
+.sidebar ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.sidebar ul li {
+  /* margin: 0px 0px; */
+}
+
+.sidebar ul li a {
+  text-decoration: none;
+  color: #666;
+  display: block;
+  padding: 9px 12px;
+  border-top: 1px solid #aaa;
+  border-bottom: 1px solid #aaa;
+}
+
+.sidebar ul li a:hover {
+  color: #000;
+  background-color: #e0e0e0;
+} 
+
+.content {
+  flex: 1;
+  /* padding: 10px 0px; */
+  margin-left: 240px;
+  overflow-y: hidden;
+}
+
+.header {
+  background-color: #ddd;
+  padding: 5px;
+  margin-bottom: 20px;
+}
+
+#dashboardTitle {
+  padding-left: 20px;
+}
+
+.dashboard {
+  display: none;
+}
+
+.dashboard p {
+  line-height: 1.6;
+}
+
+.requests {
+  margin: 20px 20px;
+  font-family: Arial, sans-serif;
+  border: 1px solid #ddd;
+}
+
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #ddd;
+}
+
+.arrow-up::after {
+  content: " ▲";
+}
+
+.arrow-down::after {
+  content: " ▼";
+}
+
+th, td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  cursor: pointer;
+  position: relative;
+}
+
+.sort-icon {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.sort-icon.up {
+  border-bottom: 6px solid #000;
+}
+
+.sort-icon.down {
+  border-top: 6px solid #000;
+}
