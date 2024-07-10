@@ -40,7 +40,7 @@
         <h1 id="dashboardTitle">Backup Requests</h1>
     </div>
 
-    <div class="requests" id="backuprequests">
+    <div class="dashboard" id="backuprequests">
         <!-- TODO: filter dropdown menu and search-->
         <div class="table-container">
             <table class="sortable-table">
@@ -108,14 +108,77 @@
                         <td>Server C</td>
                         <td>Not Completed</td>
                     </tr>
-                    <!-- Add more rows as needed -->
                 </tbody>
             </table>
         </div>
     </div>
 
     <div class="dashboard" id="makerequest" style="display: none;">
-        <p>This is Make Request</p>
+        <div class="form-container">
+            <form id="backupForm">
+              <label for="location">Location:</label>
+              <select id="location" name="location">
+                <option value="server1">Server 1</option>
+                <option value="server2">Server 2</option>
+                <option value="server3">Server 3</option>
+              </select><br>
+              
+              <label>Request:</label><br><br>
+
+              <input type="radio" id="requestNow" name="requestType" value="now" checked>
+              <label for="requestNow">Request Now</label><br><br>
+              
+              <input type="radio" id="requestLater" name="requestType" value="later">
+              <label for="requestLater">Request for a different time</label>
+              <br>
+
+              <div class="date-selection">
+                <label for="backupDate">Select Date:</label>
+                <input type="date" id="backupDate" name="backupDate">
+                
+                <label for="repeat">Repeat periodically:</label>
+                <select id="repeat" name="repeat">
+                  <option value="everyday">Every day</option>
+                  <option value="everyweek">Every week</option>
+                  <option value="everymonth">Every month</option>
+                  <option value="everyyear">Every year</option>
+                </select>
+              </div>
+              
+              <label for="backupMessage">Write backup message:</label><br>
+              <textarea type="text" rows = "5" cols = "60" id="backupMessage" name="backupMessage"></textarea>
+              <br>
+
+              <button type="submit" class="submit-btn">Submit</button>
+            </form>
+        </div>
+        <p class="periodicrequests">Periodic Requests:</p>
+        <div class="table-container">
+            <table>
+                <thead>
+                  <tr>
+                    <th data-sort-by="location">Location</th>
+                    <th>Period</th>
+                    <th data-sort-by="nextrequest">Next Request</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Moscow</td>
+                    <td>Every week</td>
+                    <td>2024-07-15</td>
+                    <td><button onclick="deleteRow(this)">DELETE</button></td>
+                  </tr>
+                  <tr>
+                    <td>London</td>
+                    <td>Every Month</td>
+                    <td>2024-08-05</td>
+                    <td><button onclick="deleteRow(this)">DELETE</button></td>
+                  </tr>
+                </tbody>
+              </table>
+        </div>
     </div>
 
     <div class="dashboard" id="seelogs" style="display: none;">
