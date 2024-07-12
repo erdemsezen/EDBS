@@ -6,9 +6,4 @@ var conn = mysql.createConnection({
   password: "rootROOT"
 });
 
-conn.connect(function(err) {
-    if (err) throw err;
-    console.log("Connected!");
-});
-
 module.exports = conn;
