@@ -7,7 +7,7 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
 
     // Example authentication logic (replace with your actual authentication)
     if (username === 'admin' && password === 'password') {
-        window.location.href = 'admin/index.html';
+        window.location.href = 'http://localhost:8080/admin';
     } else {
         document.getElementById('alert').style.display = "block";
         document.getElementById('password').value = '';

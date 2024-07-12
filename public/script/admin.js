@@ -22,7 +22,7 @@ function showDashboard(dashboardName) {
 
 // Log out menu
 function logout() {
-    window.location.href = '../index.html';
+    window.location.href = '../login/index.html';
 }
 
 // Backup Requests menu

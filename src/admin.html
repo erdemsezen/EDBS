@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EDBS | Main Page</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style/admin.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 </head>
@@ -15,13 +15,13 @@
     <!-- Fetch these values from the database -->
 
     <div class="circle-frame">
-        <img src="pfp.png" alt="Your Image">
+        <img src="images/pfp.png" alt="Your Image">
     </div>
 
     <h3 class="username">Erdem Sezen</h3>
     <h4 class="rank">-Admin-</h4>
 
-    <h2>E-DBS<br>ENKA Merkez</h2>
+    <h2>E-DBS<br>ENKA Merkez</h2>   
 
     <ul>
         <li><a href="#" onclick="showDashboard('Backup Requests')">Backup Requests</a></li>
@@ -48,7 +48,7 @@
                     <tr>
                         <th data-sort-by="backupMessage">Backup Message</th>
                         <th data-sort-by="date">Date</th>
-                        <th data-sort-by="server">Server</th>
+                        <th data-sort-by="location">Location</th>
                         <th data-sort-by="status">Status</th>
                       </tr>
                     </tr>
@@ -138,6 +138,7 @@
                 
                 <label for="repeat">Repeat periodically:</label>
                 <select id="repeat" name="repeat">
+                  <option value="none">None</option>
                   <option value="everyday">Every day</option>
                   <option value="everyweek">Every week</option>
                   <option value="everymonth">Every month</option>
@@ -146,7 +147,7 @@
               </div>
               
               <label for="backupMessage">Write backup message:</label><br>
-              <textarea type="text" rows = "5" cols = "60" id="backupMessage" name="backupMessage"></textarea>
+              <textarea type="text" rows = "5" cols = "70" id="backupMessage" name="backupMessage"></textarea>
               <br>
 
               <button type="submit" class="submit-btn">Submit</button>
@@ -195,7 +196,7 @@
 
 </div>
 
-<script src="script.js"></script>
+<script src="script/admin.js"></script>
 
 </body>
 </html>
