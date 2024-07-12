@@ -92,3 +92,7 @@ requestLaterRadio.addEventListener('change', function() {
     dateSelection.classList.add('disabled');
   }
 });
+
+window.addEventListener('popstate', function(event) {
+  history.pushState(null, null, location.href);
+});

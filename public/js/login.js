@@ -13,3 +13,7 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
         document.getElementById('password').value = '';
     }
 });
+
+window.addEventListener('popstate', function(event) {
+    history.pushState(null, null, location.href);
+});

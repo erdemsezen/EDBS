@@ -9,7 +9,7 @@
   "author": "erdemsezen",
   "license": "ISC",
   "dependencies": {
-    "mysql": "2.18.1",
+    "mysql2": "3.10.2",
     "express": "4.19.2"
   }
 }
