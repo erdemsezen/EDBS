@@ -8,7 +8,6 @@ function showDashboard(dashboardName) {
     document.getElementById('makerequest').style.display = 'none';
     document.getElementById('seelogs').style.display = 'none';
     document.getElementById('takebackup').style.display = 'none';
-    document.getElementById('edit/createusers').style.display = 'none';
     
     // Display the selected dashboard
     var selectedDashboard = document.getElementById(dashboardName.toLowerCase().replace(' ', ''));
@@ -25,43 +24,109 @@ function logout() {
     window.location.href = '../login/index.html';
 }
 
-// Backup Requests menu
+// Sortable Tables
 document.addEventListener("DOMContentLoaded", function() {
-    const table = document.querySelector('.sortable-table');
-    const headers = table.querySelectorAll('th[data-sort-by]');
-    let currentSortColumn = null;  // Track currently sorted column
-    let isAscending = true;        // Track sorting order
-  
-    headers.forEach(header => {
+  // Backup Requests table sorting logic
+  const backupTable = document.querySelector('#backuprequests .sortable-table');
+  const backupHeaders = backupTable.querySelectorAll('th[data-sort-by]');
+  let currentBackupSortColumn = null;
+  let isBackupAscending = true;
+
+  backupHeaders.forEach(header => {
+      header.addEventListener('click', function() {
+          const sortBy = this.getAttribute('data-sort-by');
+
+          if (sortBy === currentBackupSortColumn) {
+              isBackupAscending = !isBackupAscending;
+          } else {
+              backupHeaders.forEach(header => {
+                  header.classList.remove('arrow-up', 'arrow-down');
+              });
+              currentBackupSortColumn = sortBy;
+              isBackupAscending = true;
+          }
+
+          if (isBackupAscending) {
+              this.classList.add('arrow-up');
+              this.classList.remove('arrow-down');
+          } else {
+              this.classList.add('arrow-down');
+              this.classList.remove('arrow-up');
+          }
+
+          console.log(`Sorted backup requests by ${sortBy} in ${isBackupAscending ? 'ascending' : 'descending'} order.`);
+          // Perform actual sorting here
+      });
+  });
+
+  // See Logs table sorting logic
+  const logsTable = document.querySelector('#seelogs .sortable-table');
+  const logsHeaders = logsTable.querySelectorAll('th[data-sort-by]');
+  let currentLogsSortColumn = null;
+  let isLogsAscending = true;
+
+  logsHeaders.forEach((header, index) => {
+    if (index < logsHeaders.length - 1) { // Exclude last header
       header.addEventListener('click', function() {
         const sortBy = this.getAttribute('data-sort-by');
-  
-        // Toggle arrow direction
-        if (sortBy === currentSortColumn) {
-          isAscending = !isAscending;  // Toggle sorting order
+
+        if (sortBy === currentLogsSortColumn) {
+          isLogsAscending = !isLogsAscending;
         } else {
-          // Reset arrows and sorting state for previous column
-          headers.forEach(header => {
+          logsHeaders.forEach(header => {
             header.classList.remove('arrow-up', 'arrow-down');
           });
-          currentSortColumn = sortBy;
-          isAscending = true;  // Default to ascending order for new column
+          currentLogsSortColumn = sortBy;
+          isLogsAscending = true;
         }
-  
-        // Set arrow direction
-        if (isAscending) {
+
+        if (isLogsAscending) {
           this.classList.add('arrow-up');
           this.classList.remove('arrow-down');
         } else {
           this.classList.add('arrow-down');
           this.classList.remove('arrow-up');
         }
-  
-        // Perform sorting (this is where you would sort your table rows)
-  
-        // For demonstration, log the sorting details
-        console.log(`Sorted by ${sortBy} in ${isAscending ? 'ascending' : 'descending'} order.`);
+
+        console.log(`Sorted logs by ${sortBy} in ${isLogsAscending ? 'ascending' : 'descending'} order.`);
+        // Perform actual sorting here
       });
+    }
+  });
+
+    // Make Request table sorting logic
+    const requestTable = document.querySelector('#makerequest .sortable-table');
+    const requestHeaders = requestTable.querySelectorAll('th[data-sort-by]');
+    let currentRequestSortColumn = null;
+    let isRequestAscending = true;
+
+    requestHeaders.forEach((header, index) => {
+        if (index < requestHeaders.length ) { // Exclude last header
+            header.addEventListener('click', function() {
+                const sortBy = this.getAttribute('data-sort-by');
+
+                if (sortBy === currentRequestSortColumn) {
+                    isRequestAscending = !isRequestAscending;
+                } else {
+                    requestHeaders.forEach(header => {
+                        header.classList.remove('arrow-up', 'arrow-down');
+                    });
+                    currentRequestSortColumn = sortBy;
+                    isRequestAscending = true;
+                }
+
+                if (isRequestAscending) {
+                    this.classList.add('arrow-up');
+                    this.classList.remove('arrow-down');
+                } else {
+                    this.classList.add('arrow-down');
+                    this.classList.remove('arrow-up');
+                }
+
+                console.log(`Sorted make request by ${sortBy} in ${isRequestAscending ? 'ascending' : 'descending'} order.`);
+                // Perform actual sorting here
+            });
+        }
     });
 });
 
@@ -92,6 +157,8 @@ requestLaterRadio.addEventListener('change', function() {
     dateSelection.classList.add('disabled');
   }
 });
+
+
 
 window.addEventListener('popstate', function(event) {
   history.pushState(null, null, location.href);

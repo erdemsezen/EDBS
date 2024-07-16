@@ -52,4 +52,3 @@ app.get('/admin', async(req, res) => {
 app.listen(8080, () => {
   console.log("Server successfully running on port 8080");
 });
-    

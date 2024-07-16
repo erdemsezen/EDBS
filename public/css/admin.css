@@ -110,6 +110,10 @@ body {
   display: block;
 }
 
+#seelogs {
+  display: block;
+}
+
 .table-container {
   overflow-x: auto;
   overflow-y: auto;
@@ -162,11 +166,12 @@ th {
 
 /* Make Request Menu */
 
-/* #makerequest {
-  margin: 20px 20px;
+#makerequest {
+  /* margin: 20px 20px;
   font-family: Arial, sans-serif;
-  border: 1px solid #ddd;
-} */
+  border: 1px solid #ddd; */
+  display: block;
+}
 
 .form-container {
   overflow-x: auto;

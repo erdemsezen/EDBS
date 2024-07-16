@@ -28,7 +28,6 @@
         <li><a href="#" onclick="showDashboard('Make Request')">Make Request</a></li>
         <li><a href="#" onclick="showDashboard('See Logs')">See Logs</a></li>
         <li><a href="#" onclick="showDashboard('Take Backup')">Take Backup</a></li>
-        <li><a href="#" onclick="showDashboard('Edit/Create Users')">Edit/Create Users</a></li>
         <li><a href="#" onclick="logout()">Log out</a></li>
 
     </ul>
@@ -41,7 +40,7 @@
     </div>
 
     <div class="dashboard" id="backuprequests">
-        <!-- TODO: filter dropdown menu and search-->
+        <!-- TODO: filter dropdown menu and search -->
         <div class="table-container">
             <table class="sortable-table">
                 <thead> 
@@ -50,6 +49,7 @@
                         <th data-sort-by="date">Date</th>
                         <th data-sort-by="location">Location</th>
                         <th data-sort-by="status">Status</th>
+                        <th></th>
                       </tr>
                     </tr>
                 </thead>
@@ -59,54 +59,14 @@
                         <td>2023-01-01</td>
                         <td>Server A</td>
                         <td>Completed</td>
+                        <td><button onclick="deleteRow(this)">DELETE</button></td>
                     </tr>
                     <tr>
                         <td>Backup 2</td>
                         <td>2023-01-02</td>
                         <td>Server B</td>
                         <td>Error</td>
-                    </tr>
-                    <tr>
-                        <td>Backup 3</td>
-                        <td>2023-01-03</td>
-                        <td>Server C</td>
-                        <td>Not Completed</td>
-                    </tr>
-                    <tr>
-                        <td>Backup 1</td>
-                        <td>2023-01-01</td>
-                        <td>Server A</td>
-                        <td>Completed</td>
-                    </tr>
-                    <tr>
-                        <td>Backup 2</td>
-                        <td>2023-01-02</td>
-                        <td>Server B</td>
-                        <td>Error</td>
-                    </tr>
-                    <tr>
-                        <td>Backup 3</td>
-                        <td>2023-01-03</td>
-                        <td>Server C</td>
-                        <td>Not Completed</td>
-                    </tr>
-                    <tr>
-                        <td>Backup 1</td>
-                        <td>2023-01-01</td>
-                        <td>Server A</td>
-                        <td>Completed</td>
-                    </tr>
-                    <tr>
-                        <td>Backup 2</td>
-                        <td>2023-01-02</td>
-                        <td>Server B</td>
-                        <td>Error</td>
-                    </tr>
-                    <tr>
-                        <td>Backup 3</td>
-                        <td>2023-01-03</td>
-                        <td>Server C</td>
-                        <td>Not Completed</td>
+                        <td><button onclick="deleteRow(this)">DELETE</button></td>
                     </tr>
                 </tbody>
             </table>
@@ -155,11 +115,11 @@
         </div>
         <p class="periodicrequests">Periodic Requests:</p>
         <div class="table-container">
-            <table>
+            <table class="sortable-table">
                 <thead>
                   <tr>
                     <th data-sort-by="location">Location</th>
-                    <th>Period</th>
+                    <th data-sort-by="period">Period</th>
                     <th data-sort-by="nextrequest">Next Request</th>
                     <th></th>
                   </tr>
@@ -183,15 +143,31 @@
     </div>
 
     <div class="dashboard" id="seelogs" style="display: none;">
-        <p>This is See Logs</p>
+        <div class="table-container">
+            <table class="sortable-table">
+                <thead> 
+                    <tr>
+                        <th data-sort-by="location">Location</th>
+                        <th data-sort-by="Taken by">Taken by</th>
+                        <th data-sort-by="date">Date</th>
+                        <th data-sort-by="viewlogs">View Logs</th>
+                      </tr>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Moscow</td>
+                        <td>erdem.sezen</td>
+                        <td>2024-07-16</td>
+                        <td><button onclick="viewLog(this)">VIEW</button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="dashboard" id="takebackup" style="display: none;">
         <p>This is Take Backup</p>
-    </div>
-
-    <div class="dashboard" id="edit/createusers" style="display: none;">
-        <p>This is Edit/Create Users</p>
     </div>
 
 </div>
