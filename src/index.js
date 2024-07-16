@@ -1,3 +1,19 @@
+/*
+TODO:
++ View backup requests from DB
+- Make requests from make request page
+- View periodic requests from DB
+- Implement automatic periodic requests algorithm
+- View logs from DB in see logs menu
+- Implement DELETE and VIEW buttons
+- Implement take backup button
+- Take username, position, profile picture and location from DB (for side panel)
+- Implement algorithm for placeholder profile picture
+- Disable browser back button
+- Implement user page
+*/
+
+
 const express = require('express');
 const path = require('path');
 const app = express();
@@ -45,7 +61,18 @@ app.get('/admin', async(req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
+app.post('/admin', (req, res) => {
+    conn.query("SELECT r.message, r.requestDate, s.location, r.status FROM edbs.requests r JOIN edbs.servers s ON r.serverID = s.serverID", 
+    (err, results, fields) => {
+      if (err) {
+          console.error('Error querying MySQL:', err);
+          res.status(500).json({ error: 'Internal Server Error' });
+          return;
+      }
 
+      res.json(results); // Send JSON response with backup requests data
+  });
+}); 
 
 
 

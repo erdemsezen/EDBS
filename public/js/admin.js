@@ -24,6 +24,69 @@ function logout() {
     window.location.href = "http://localhost:8080/";
 }
 
+// Table Filling
+// async function populateBackupRequests() {
+//   try {
+//     const response = await fetch('http://localhost:8080/admin');
+//     const data = await response.json();
+
+//     const tableBody = document.querySelector('#backuprequests tbody');
+//     tableBody.innerHTML = ''; // Clear existing rows
+
+//     data.forEach(request => {
+//       console.log(request[0])
+//       // const row = document.createElement('tr');
+//       // row.innerHTML = `
+//       //   <td>${request.message}</td>
+//       //   <td>${request.requestDate}</td>
+//       //   <td>${request.location}</td>
+//       //   <td>${request.status}</td>
+//       //   <td><button onclick="deleteRow(this)">DELETE</button></td>
+//       // `;
+//       // tableBody.appendChild(row);
+//     });
+//   } catch (error) {
+//     console.error('Error fetching backup requests:', error);
+//   }
+// }
+
+// // Call the function initially to populate the table on page load
+// populateBackupRequests();
+
+fetch('/admin', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+})
+.then(response => {
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.json();
+})
+.then(json => {
+  const tableBody = document.querySelector('#backuprequests tbody');
+  tableBody.innerHTML = ''; // Clear existing rows
+
+  console.log(json);
+  json.forEach(request => {
+    console.log(request[0])
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${request.message}</td>
+      <td>${request.requestDate.split("T")[0]}</td>
+      <td>${request.location}</td>
+      <td>${request.status}</td>
+      <td><button onclick="deleteRow(this)">DELETE</button></td>
+    `;
+    tableBody.appendChild(row);
+  });
+})
+.catch(error => {
+  console.error('Error:', error);
+});
+
 // Sortable Tables
 document.addEventListener("DOMContentLoaded", function() {
   // Backup Requests table sorting logic

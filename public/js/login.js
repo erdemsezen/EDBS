@@ -10,19 +10,16 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({ username, password })
-    })
-    .then(response => {
+    }).then(response => {
         if (!response.ok) {
             document.getElementById('alert').style.display = "block";
             document.getElementById('password').value = '';
             throw new Error('Network response was not ok');
         }
         return response.json();
-    })
-    .then(json => {
+    }).then(json => {
             window.location.href = json.home;
-    })
-    .catch(error => {
+    }).catch(error => {
         console.error('Error:', error);
     });
 });
