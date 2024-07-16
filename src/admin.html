@@ -45,7 +45,7 @@
             <table class="sortable-table">
                 <thead> 
                     <tr>
-                        <th data-sort-by="backupMessage">Backup Message</th>
+                        <th data-sort-by="Message">Message</th>
                         <th data-sort-by="date">Date</th>
                         <th data-sort-by="location">Location</th>
                         <th data-sort-by="status">Status</th>
@@ -59,7 +59,7 @@
 
     <div class="dashboard" id="makerequest" style="display: none;">
         <div class="form-container">
-            <form id="backupForm">
+            <form id="requestForm">
               <label for="location">Location:</label>
               <select id="location" name="location">
                 <option value="server1">Server 1</option>
@@ -102,6 +102,7 @@
             <table class="sortable-table">
                 <thead>
                   <tr>
+                    <th data-sort-by="Message">Message</th>
                     <th data-sort-by="location">Location</th>
                     <th data-sort-by="period">Period</th>
                     <th data-sort-by="nextrequest">Next Request</th>
@@ -109,18 +110,20 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
+                  <!-- <tr>
+                    <td>This is a message</td>
                     <td>Moscow</td>
                     <td>Every week</td>
                     <td>2024-07-15</td>
                     <td><button onclick="deleteRow(this)">DELETE</button></td>
                   </tr>
                   <tr>
+                    <td>Weekly routine backup</td>
                     <td>London</td>
                     <td>Every Month</td>
                     <td>2024-08-05</td>
                     <td><button onclick="deleteRow(this)">DELETE</button></td>
-                  </tr>
+                  </tr> -->
                 </tbody>
               </table>
         </div>

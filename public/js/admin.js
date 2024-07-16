@@ -1,3 +1,19 @@
+function formatDate(date) { // Function for turning date intodesired format
+  var d = new Date(date),
+      month = '' + (d.getMonth() + 1),
+      day = '' + d.getDate(),
+      year = d.getFullYear();
+
+  if (month.length < 2) 
+      month = '0' + month;
+  if (day.length < 2) 
+      day = '0' + day;
+
+  return [year, month, day].join('-');
+}
+
+backupDate.min = new Date().toISOString().split("T")[0];
+
 function showDashboard(dashboardName) {
     // Hide all dashboards
     // var dashboards = document.getElementsByClassName('dashboard');
@@ -24,54 +40,22 @@ function logout() {
     window.location.href = "http://localhost:8080/";
 }
 
-// Table Filling
-// async function populateBackupRequests() {
-//   try {
-//     const response = await fetch('http://localhost:8080/admin');
-//     const data = await response.json();
-
-//     const tableBody = document.querySelector('#backuprequests tbody');
-//     tableBody.innerHTML = ''; // Clear existing rows
-
-//     data.forEach(request => {
-//       console.log(request[0])
-//       // const row = document.createElement('tr');
-//       // row.innerHTML = `
-//       //   <td>${request.message}</td>
-//       //   <td>${request.requestDate}</td>
-//       //   <td>${request.location}</td>
-//       //   <td>${request.status}</td>
-//       //   <td><button onclick="deleteRow(this)">DELETE</button></td>
-//       // `;
-//       // tableBody.appendChild(row);
-//     });
-//   } catch (error) {
-//     console.error('Error fetching backup requests:', error);
-//   }
-// }
-
-// // Call the function initially to populate the table on page load
-// populateBackupRequests();
-
-fetch('/admin', {
+// Populate Backup Requests Table
+fetch('/admin/backupTable', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json'
   },
-})
-.then(response => {
+}).then(response => {
   if (!response.ok) {
     throw new Error('Network response was not ok');
   }
   return response.json();
-})
-.then(json => {
+}).then(json => {
   const tableBody = document.querySelector('#backuprequests tbody');
   tableBody.innerHTML = ''; // Clear existing rows
 
-  console.log(json);
   json.forEach(request => {
-    console.log(request[0])
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${request.message}</td>
@@ -82,8 +66,7 @@ fetch('/admin', {
     `;
     tableBody.appendChild(row);
   });
-})
-.catch(error => {
+}).catch(error => {
   console.error('Error:', error);
 });
 
@@ -163,34 +146,34 @@ document.addEventListener("DOMContentLoaded", function() {
     let currentRequestSortColumn = null;
     let isRequestAscending = true;
 
-    requestHeaders.forEach((header, index) => {
-        if (index < requestHeaders.length ) { // Exclude last header
-            header.addEventListener('click', function() {
-                const sortBy = this.getAttribute('data-sort-by');
+  requestHeaders.forEach((header, index) => {
+    if (index < requestHeaders.length ) { // Exclude last header
+      header.addEventListener('click', function() {
+        const sortBy = this.getAttribute('data-sort-by');
 
-                if (sortBy === currentRequestSortColumn) {
-                    isRequestAscending = !isRequestAscending;
-                } else {
-                    requestHeaders.forEach(header => {
-                        header.classList.remove('arrow-up', 'arrow-down');
-                    });
-                    currentRequestSortColumn = sortBy;
-                    isRequestAscending = true;
-                }
-
-                if (isRequestAscending) {
-                    this.classList.add('arrow-up');
-                    this.classList.remove('arrow-down');
-                } else {
-                    this.classList.add('arrow-down');
-                    this.classList.remove('arrow-up');
-                }
-
-                console.log(`Sorted make request by ${sortBy} in ${isRequestAscending ? 'ascending' : 'descending'} order.`);
-                // Perform actual sorting here
-            });
+        if (sortBy === currentRequestSortColumn) {
+          isRequestAscending = !isRequestAscending;
+        } else {
+          requestHeaders.forEach(header => {
+            header.classList.remove('arrow-up', 'arrow-down');
+          });
+          currentRequestSortColumn = sortBy;
+          isRequestAscending = true;
         }
-    });
+
+        if (isRequestAscending) {
+          this.classList.add('arrow-up');
+          this.classList.remove('arrow-down');
+        } else {
+          this.classList.add('arrow-down');
+          this.classList.remove('arrow-up');
+        }
+
+        console.log(`Sorted make request by ${sortBy} in ${isRequestAscending ? 'ascending' : 'descending'} order.`);
+        // Perform actual sorting here
+      });
+  }
+  });
 });
 
 // Make Request menu 
@@ -204,7 +187,6 @@ if (requestNowRadio.checked) {
 } else {
   dateSelection.classList.remove('disabled');
 }
-
 requestNowRadio.addEventListener('change', function() {
   if (this.checked) {
     dateSelection.classList.add('disabled');
@@ -219,6 +201,52 @@ requestLaterRadio.addEventListener('change', function() {
   } else {
     dateSelection.classList.add('disabled');
   }
+});
+
+document.getElementById('requestForm').addEventListener('submit', function(submitEvent) {
+  submitEvent.preventDefault();
+
+  let backupDate;
+
+  if (requestNowRadio.checked) {
+    backupDate = formatDate(date());
+  } else {
+    backupDate = formatDate(document.getElementById('backupDate').value);
+  }
+
+  const period = document.getElementById('repeat')
+
+});
+
+
+// Populate periodic requests table
+fetch('/admin/periodicRequests', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+}).then(response => {
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.json();
+}).then(json => {
+  const tableBody = document.querySelector('#makerequest tbody');
+  tableBody.innerHTML = ''; // Clear existing rows
+
+  json.forEach(request => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${request.message}</td>
+      <td>${request.location}</td>
+      <td>${request.period}</td>
+      <td>${request.nextDate.split("T")[0]}</td>
+      <td><button onclick="deleteRow(this)">DELETE</button></td>
+    `;
+    tableBody.appendChild(row);
+  });
+}).catch(error => {
+  console.error('Error:', error);
 });
 
 

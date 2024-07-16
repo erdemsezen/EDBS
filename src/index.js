@@ -2,7 +2,7 @@
 TODO:
 + View backup requests from DB
 - Make requests from make request page
-- View periodic requests from DB
++ View periodic requests from DB
 - Implement automatic periodic requests algorithm
 - View logs from DB in see logs menu
 - Implement DELETE and VIEW buttons
@@ -61,7 +61,7 @@ app.get('/admin', async(req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
-app.post('/admin', (req, res) => {
+app.post('/admin/backupTable', (req, res) => {
     conn.query("SELECT r.message, r.requestDate, s.location, r.status FROM edbs.requests r JOIN edbs.servers s ON r.serverID = s.serverID", 
     (err, results, fields) => {
       if (err) {
@@ -74,6 +74,49 @@ app.post('/admin', (req, res) => {
   });
 }); 
 
+app.post('/admin/periodicRequests', (req, res) => {
+  conn.query("SELECT r.message, s.location, r.period, r.requestDate AS nextDate FROM edbs.requests r JOIN edbs.servers s ON r.serverID = s.serverID WHERE r.period != 'None';", 
+    (err, results, fields) => {
+    if (err) {
+      console.error('Error querying MySQL:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    
+    const today = new Date().toISOString().split("T")[0];
+
+    results.forEach(result => {
+      result.nextDate.setDate(result.nextDate.getDate() + 1);
+
+      switch (result.period) {
+        case 'Day':
+          result.nextDate.setDate(result.nextDate.getDate() + 1);
+          // if(result.nextDate.split("T")[0] == today) {
+          //   result.nextDate.setDate(result.nextDate.getDate() + 1);
+          //   conn.query("INSERT INTO Requests (message, requestDate, status, period, serverID) VALUES (?, ?, ?, ?, ?)",
+          //     [result.message, today, "Not Completed", result.period, result.serverID]
+          //   )
+          // };
+          break;
+        case 'Week':
+          result.nextDate.setDate(result.nextDate.getDate() + 7);
+          break;
+        case 'Month':
+          result.nextDate.setMonth(result.nextDate.getMonth() + 1);
+          break;
+        case 'Year':
+          result.nextDate.setFullYear(result.nextDate.getFullYear() + 1);
+          break;
+        default:
+          // Handle unexpected period (though should not occur as per query WHERE clause)
+          break;
+      }
+
+    })
+
+    res.json(results); // Send JSON response with backup requests data
+  });
+});
 
 
 app.listen(8080, () => {
