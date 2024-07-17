@@ -13,12 +13,10 @@ function formatDate(date) { // Function for turning date intodesired format
 }
 
 backupDate.min = new Date().toISOString().split("T")[0];
-const token = localStorage.getItem('token');
+let token = localStorage.getItem('token');
 if (!token) {
   window.location.href = '/';
 }
-
-
 
 function showDashboard(dashboardName) {
     // Hide all dashboards
@@ -26,19 +24,20 @@ function showDashboard(dashboardName) {
     // for (var i = 0; i < dashboards.length; i++) {
     //     dashboards[i].style.display = 'none';
     // }
-    document.getElementById('backuprequests').style.display = 'none';
-    document.getElementById('makerequest').style.display = 'none';
-    document.getElementById('seelogs').style.display = 'none';
-    document.getElementById('takebackup').style.display = 'none';
-    
-    // Display the selected dashboard
-    var selectedDashboard = document.getElementById(dashboardName.toLowerCase().replace(' ', ''));
-    if (selectedDashboard) {
-        selectedDashboard.style.display = 'block';
-    }
 
-    // Update the dashboard title
-    document.getElementById('dashboardTitle').textContent = dashboardName;
+  document.getElementById('backuprequests').style.display = 'none';
+  document.getElementById('makerequest').style.display = 'none';
+  document.getElementById('seelogs').style.display = 'none';
+  document.getElementById('takebackup').style.display = 'none';
+  
+  // Display the selected dashboard
+  var selectedDashboard = document.getElementById(dashboardName.toLowerCase().replace(' ', ''));
+  if (selectedDashboard) {
+      selectedDashboard.style.display = 'block';
+  }
+
+  // Update the dashboard title
+  document.getElementById('dashboardTitle').textContent = dashboardName;
 }
 
 // Log out menu
@@ -307,8 +306,3 @@ fetch('/admin/periodicRequests', {
   console.error('Error:', error);
 });
 
-
-
-window.addEventListener('popstate', function(event) {
-  history.pushState(null, null, location.href);
-});

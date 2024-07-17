@@ -73,13 +73,13 @@ app.post('/', function(req, res) {
             const token = jwt.sign({
               username: user.username,
               route: "/admin"
-            }, jwtSecret, {expiresIn: '24h'});
+            }, jwtSecret, {expiresIn: '30min'});
             res.json({token});
           } else {
             const token = jwt.sign({
               username: user.username,
               route: "/home"
-            }, jwtSecret, {expiresIn: '24h'});
+            }, jwtSecret, {expiresIn: '30min'});
             res.json({token});
           }
         } else {
