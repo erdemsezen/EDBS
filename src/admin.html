@@ -10,18 +10,18 @@
 </head>
 <body>
 
-<div class="sidebar">
+<div class="sidebar" id="sidebar">
 
     <!-- Fetch these values from the database -->
 
-    <div class="circle-frame">
-        <img src="img/pfp.png" alt="Your Image">
+    <div class="circle-frame" >
+        <img src="" alt="Your Image" id="profilepic">
     </div>
 
-    <h3 class="username">Erdem Sezen</h3>
-    <h4 class="rank">-Admin-</h4>
+    <h3 class="username" id="username">Erdem Sezen</h3>
+    <h4 class="rank" id="position">-Admin-</h4>
 
-    <h2>E-DBS<br>ENKA Merkez</h2>   
+    <h2 id="userLocation">E-DBS<br>ENKA Merkez</h2>   
 
     <ul>
         <li><a href="#" onclick="showDashboard('Backup Requests')">Backup Requests</a></li>
@@ -109,22 +109,7 @@
                     <th></th>
                   </tr>
                 </thead>
-                <tbody>
-                  <!-- <tr>
-                    <td>This is a message</td>
-                    <td>Moscow</td>
-                    <td>Every week</td>
-                    <td>2024-07-15</td>
-                    <td><button onclick="deleteRow(this)">DELETE</button></td>
-                  </tr>
-                  <tr>
-                    <td>Weekly routine backup</td>
-                    <td>London</td>
-                    <td>Every Month</td>
-                    <td>2024-08-05</td>
-                    <td><button onclick="deleteRow(this)">DELETE</button></td>
-                  </tr> -->
-                </tbody>
+                <tbody></tbody>
               </table>
         </div>
     </div>

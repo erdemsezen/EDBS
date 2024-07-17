@@ -7,9 +7,9 @@ TODO:
 - View logs from DB in see logs menu
 - Implement DELETE and VIEW buttons
 - Implement take backup button
-- Take username, position, profile picture and location from DB (for side panel)
-- Implement algorithm for placeholder profile picture
-- Disable browser back button
++ Take username, position, profile picture and location from DB (for side panel)
++ Implement algorithm for placeholder profile picture
++ Disable browser back button
 - Implement user page
 */
 
@@ -18,7 +18,26 @@ const express = require('express');
 const path = require('path');
 const app = express();
 const conn = require('./db_connection.js');
-const bodyParser = require('body-parser');
+const jwt = require('jsonwebtoken');
+const nocache = require("nocache");
+require('dotenv').config();
+const jwtSecret = process.env.JWT_SECRET;
+let currentUser = "";
+
+
+function verifyToken(req, res, next) {
+  const token = req.headers.authorization;
+  if(!token){
+    return res.status(401).json({ error : 'Access denied. No token provided.'});
+  }
+  try {
+    const decoded = jwt.verify(token, jwtSecret);
+    req.user = decoded;
+    next();
+  } catch(error){
+    res.status(401).json({ error : 'Invalid token' });
+  }
+};
 
 conn.connect(function(err) {
   if (err) throw err;
@@ -26,7 +45,9 @@ conn.connect(function(err) {
 });
 
 app.use(express.static(path.join(__dirname, '../public')));
-app.use(bodyParser.json());
+// app.use(bodyParser.json());
+app.use(express.json());
+app.use(nocache());
 
 app.get('/', async(req, res) => {
   res.sendFile(path.join(__dirname, 'login.html'));
@@ -36,7 +57,7 @@ app.post('/', function(req, res) {
   const username = req.body.username;
   const password = req.body.password;
 
-    conn.query("SELECT privilege FROM edbs.users WHERE username = ? AND pass = ?", 
+    conn.query("SELECT * FROM edbs.users WHERE username = ? AND pass = ?", 
       [username, password],
       function(err, results, fields) {
         if (err) {
@@ -46,8 +67,20 @@ app.post('/', function(req, res) {
         }
 
         if (results.length > 0) {
-          if (results[0].privilege == 1) {
-            res.json({ home: "http://localhost:8080/admin"});
+          const user = results[0];
+          currentUser = user.username;
+          if (user.privilege == 1) {
+            const token = jwt.sign({
+              username: user.username,
+              route: "/admin"
+            }, jwtSecret, {expiresIn: '24h'});
+            res.json({token});
+          } else {
+            const token = jwt.sign({
+              username: user.username,
+              route: "/home"
+            }, jwtSecret, {expiresIn: '24h'});
+            res.json({token});
           }
         } else {
           res.status(401).send('Unauthorized'); // User does not exist or incorrect credentials
@@ -55,13 +88,17 @@ app.post('/', function(req, res) {
         
       }
   );
-})
-
-app.get('/admin', async(req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
-app.post('/admin/backupTable', (req, res) => {
+app.get('/admin', async(req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.get('/getJWTData', verifyToken, (req, res) => {
+  res.json({user: req.user});
+});
+
+app.post('/admin/backupTable', verifyToken, (req, res) => {
     conn.query("SELECT r.message, r.requestDate, s.location, r.status FROM edbs.requests r JOIN edbs.servers s ON r.serverID = s.serverID", 
     (err, results, fields) => {
       if (err) {
@@ -118,7 +155,21 @@ app.post('/admin/periodicRequests', (req, res) => {
   });
 });
 
+app.post('/admin/profile', (req, res) => {
+  conn.query("SELECT u.firstName, u.lastName, u.position, u.imagePath, s.location FROM edbs.users u JOIN edbs.servers s ON u.serverID = s.serverID WHERE u.username = ?",
+    [currentUser], 
+    (err, results, fields) => {
+    if (err) {
+      console.error('Error querying MySQL:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
 
-app.listen(8080, () => {
-  console.log("Server successfully running on port 8080");
+    res.json(results);
+  });
+});
+
+
+app.listen(process.env.PORT, () => {
+  console.log("Server successfully running");
 });

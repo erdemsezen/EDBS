@@ -13,6 +13,12 @@ function formatDate(date) { // Function for turning date intodesired format
 }
 
 backupDate.min = new Date().toISOString().split("T")[0];
+const token = localStorage.getItem('token');
+if (!token) {
+  window.location.href = '/';
+}
+
+
 
 function showDashboard(dashboardName) {
     // Hide all dashboards
@@ -37,25 +43,72 @@ function showDashboard(dashboardName) {
 
 // Log out menu
 function logout() {
-    window.location.href = "http://localhost:8080/";
+  localStorage.removeItem('token');
+  window.location.href = "/";
 }
 
-// Populate Backup Requests Table
-fetch('/admin/backupTable', {
+function getJWTData() {
+  fetch('/getJWTData', {
+    headers : {
+      'Authorization' : token
+    }
+  })
+  .then(response => {
+    return response.json();
+  })
+  .then(data => {
+    return data.user.username;
+  })
+  .catch(error => {
+    alert(error);
+  });
+}
+
+// Insert user info
+fetch('/admin/profile', {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   },
 }).then(response => {
   if (!response.ok) {
     throw new Error('Network response was not ok');
   }
   return response.json();
-}).then(json => {
+}).then(data => {
+  const userinfo = data[0];
+  const profilePicSrc = userinfo.imgPath ? userinfo.imgPath : 'img/pfp.png';
+
+  document.getElementById("profilepic").src = profilePicSrc;
+  document.getElementById("username").innerHTML = userinfo.firstName + " " + userinfo.lastName;
+  document.getElementById("position").innerHTML = "-" + userinfo.position + "-";
+  document.getElementById("userLocation").innerHTML = "E-DBS<br>" + userinfo.location;
+
+}).catch(error => {
+  console.error('Error:', error);
+});
+
+// Populate Backup Requests Table
+fetch('/admin/backupTable', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': token
+  },
+}).then(response => {
+  if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = "/";
+  }
+    throw new Error('Network response was not ok');
+  }
+  return response.json();
+}).then(data => {
   const tableBody = document.querySelector('#backuprequests tbody');
   tableBody.innerHTML = ''; // Clear existing rows
 
-  json.forEach(request => {
+  data.forEach(request => {
     const row = document.createElement('tr');
     row.innerHTML = `
       <td>${request.message}</td>
@@ -223,10 +276,15 @@ document.getElementById('requestForm').addEventListener('submit', function(submi
 fetch('/admin/periodicRequests', {
   method: 'POST',
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Authorization': token
   },
 }).then(response => {
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = "/";
+      }
     throw new Error('Network response was not ok');
   }
   return response.json();
