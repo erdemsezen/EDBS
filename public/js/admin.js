@@ -63,6 +63,32 @@ function getJWTData() {
   });
 }
 
+function deleteRow(button) {
+  var row = button.closest('tr');
+  var requestID = row.id;
+
+  fetch('/admin/deleteRequest', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ requestID: requestID })
+  }).then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  }).then(data => {
+    row.parentNode.removeChild(row);
+  }).catch(error => {
+    console.error('Error:', error);
+  });
+}
+
+function viewLog(button) {
+
+}
+
 // Insert user info
 fetch('/admin/profile', {
   method: 'POST',
@@ -84,6 +110,7 @@ fetch('/admin/profile', {
   document.getElementById("userLocation").innerHTML = "E-DBS<br>" + userinfo.location;
 
 }).catch(error => {
+  document.getElementById("profilepic").src = 'img/pfp.png';
   console.error('Error:', error);
 });
 
@@ -92,14 +119,9 @@ fetch('/admin/backupTable', {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'Authorization': token
   },
 }).then(response => {
   if (!response.ok) {
-    if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = "/";
-  }
     throw new Error('Network response was not ok');
   }
   return response.json();
@@ -109,12 +131,44 @@ fetch('/admin/backupTable', {
 
   data.forEach(request => {
     const row = document.createElement('tr');
+    row.id = request.requestID
     row.innerHTML = `
       <td>${request.message}</td>
       <td>${request.requestDate.split("T")[0]}</td>
       <td>${request.location}</td>
       <td>${request.status}</td>
       <td><button onclick="deleteRow(this)">DELETE</button></td>
+    `;
+    tableBody.appendChild(row);
+  });
+}).catch(error => {
+  console.error('Error:', error);
+});
+
+// Populate See Logs Table
+fetch('/admin/logsTable', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+}).then(response => {
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.json();
+}).then(data => {
+  const tableBody = document.querySelector('#seelogs tbody');
+  tableBody.innerHTML = ''; // Clear existing rows
+
+  data.forEach(request => {
+    const row = document.createElement('tr');
+    row.id = request.backupID
+    row.innerHTML = `
+      <td>${request.location}</td>
+      <td>${request.username}</td>
+      <td>${request.backupDate.split("T")[0]}</td>
+      <td>${request.backupDate.split("T")[1].split(".")[0]}</td>
+      <td><button onclick="viewLog(this)">VIEW</button></td>
     `;
     tableBody.appendChild(row);
   });
@@ -164,7 +218,7 @@ document.addEventListener("DOMContentLoaded", function() {
   let isLogsAscending = true;
 
   logsHeaders.forEach((header, index) => {
-    if (index < logsHeaders.length - 1) { // Exclude last header
+    if (index < logsHeaders.length) { // Exclude last header
       header.addEventListener('click', function() {
         const sortBy = this.getAttribute('data-sort-by');
 
@@ -287,12 +341,13 @@ fetch('/admin/periodicRequests', {
     throw new Error('Network response was not ok');
   }
   return response.json();
-}).then(json => {
+}).then(data => {
   const tableBody = document.querySelector('#makerequest tbody');
   tableBody.innerHTML = ''; // Clear existing rows
 
-  json.forEach(request => {
+  data.forEach(request => {
     const row = document.createElement('tr');
+    row.id = request.requestID
     row.innerHTML = `
       <td>${request.message}</td>
       <td>${request.location}</td>

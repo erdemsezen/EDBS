@@ -1,22 +1,7 @@
-/*
-TODO:
-+ View backup requests from DB
-- Make requests from make request page
-+ View periodic requests from DB
-- Implement automatic periodic requests algorithm
-- View logs from DB in see logs menu
-- Implement DELETE and VIEW buttons
-- Implement take backup button
-+ Take username, position, profile picture and location from DB (for side panel)
-+ Implement algorithm for placeholder profile picture
-+ Disable browser back button
-- Implement user page
-*/
-
-
 const express = require('express');
 const path = require('path');
 const app = express();
+const bodyParser = require('body-parser');
 const conn = require('./db_connection.js');
 const jwt = require('jsonwebtoken');
 const nocache = require("nocache");
@@ -48,6 +33,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 // app.use(bodyParser.json());
 app.use(express.json());
 app.use(nocache());
+app.use(bodyParser.json());
 
 app.get('/', async(req, res) => {
   res.sendFile(path.join(__dirname, 'login.html'));
@@ -90,16 +76,16 @@ app.post('/', function(req, res) {
   );
 });
 
-app.get('/admin', async(req, res) => {
-  res.sendFile(path.join(__dirname, 'admin.html'));
-});
-
 app.get('/getJWTData', verifyToken, (req, res) => {
   res.json({user: req.user});
 });
 
-app.post('/admin/backupTable', verifyToken, (req, res) => {
-    conn.query("SELECT r.message, r.requestDate, s.location, r.status FROM edbs.requests r JOIN edbs.servers s ON r.serverID = s.serverID", 
+app.get('/admin', async(req, res) => {
+  res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.post('/admin/backupTable', (req, res) => {
+    conn.query("SELECT r.requestID, r.message, r.requestDate, s.location, r.status FROM edbs.requests r JOIN edbs.servers s ON r.serverID = s.serverID", 
     (err, results, fields) => {
       if (err) {
           console.error('Error querying MySQL:', err);
@@ -107,12 +93,47 @@ app.post('/admin/backupTable', verifyToken, (req, res) => {
           return;
       }
 
+      results.forEach(result => {
+        result.requestDate.setDate(result.requestDate.getDate() + 1);
+      })
+
       res.json(results); // Send JSON response with backup requests data
   });
 }); 
 
+app.post('/admin/logsTable', (req, res) => {
+  conn.query("SELECT b.backupID, b.backupDate, s.location, bu.username FROM edbs.backups b JOIN edbs.servers s ON b.serverID = s.serverID JOIN edbs.backupusers bu ON b.backupID = bu.backupID", 
+  (err, results, fields) => {
+    if (err) {
+        console.error('Error querying MySQL:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+        return;
+    }
+
+    results.forEach(result => {
+      result.backupDate.setHours(result.backupDate.getHours() + 3);
+    })
+
+    res.json(results); // Send JSON response with backup requests data
+});
+}); 
+
+app.post('/admin/deleteRequest', (req, res) =>{
+  const requestID = req.body.requestID;
+
+  conn.query('DELETE FROM edbs.requests WHERE requestID = ?', [requestID], (error, results, fields) => {
+    if (error) {
+      console.error('Error deleting row from database:', error);
+      res.status(500).json({ error: 'Error deleting row from database' });
+      return;
+    }
+    console.log(requestID);
+    res.status(200).json({ message: 'Row deleted successfully' }); // Send success response
+  });
+});
+
 app.post('/admin/periodicRequests', (req, res) => {
-  conn.query("SELECT r.message, s.location, r.period, r.requestDate AS nextDate FROM edbs.requests r JOIN edbs.servers s ON r.serverID = s.serverID WHERE r.period != 'None';", 
+  conn.query("SELECT r.requestID, r.message, s.location, r.period, r.requestDate AS nextDate FROM edbs.requests r JOIN edbs.servers s ON r.serverID = s.serverID WHERE r.period != 'None';", 
     (err, results, fields) => {
     if (err) {
       console.error('Error querying MySQL:', err);
