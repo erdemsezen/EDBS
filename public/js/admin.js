@@ -280,6 +280,7 @@ document.addEventListener("DOMContentLoaded", function() {
       });
   }
   });
+
 });
 
 // Make Request menu 
@@ -309,19 +310,41 @@ requestLaterRadio.addEventListener('change', function() {
   }
 });
 
+// Make request Form
 document.getElementById('requestForm').addEventListener('submit', function(submitEvent) {
   submitEvent.preventDefault();
-
-  let backupDate;
+  
+  const serverID = document.getElementById("location").value;
+  const period = document.getElementById('repeat').value;
+  const message = document.getElementById("backupMessage").value;
+  let requestDate;
 
   if (requestNowRadio.checked) {
-    backupDate = formatDate(date());
+    requestDate = formatDate( new Date().toJSON().split("T")[0]);
   } else {
-    backupDate = formatDate(document.getElementById('backupDate').value);
+    requestDate = formatDate(document.getElementById('backupDate').value);
   }
 
-  const period = document.getElementById('repeat')
+  const statusMessage = document.querySelector('#makerequest p');
 
+  fetch('/admin/makerequest', {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ serverID, period, message, requestDate })
+  }).then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  }).then(data => {
+    statusMessage.innerHTML = 'Request successfully created.';
+    console.log('Request successfully created.');
+  }).catch(error => {
+    console.error('Error:', error);
+    statusMessage.innerHTML = 'Could not create request.';
+  });
 });
 
 

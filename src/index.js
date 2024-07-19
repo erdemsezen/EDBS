@@ -29,8 +29,8 @@ conn.connect(function(err) {
   console.log("Connected!");
 });
 
+app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, '../public')));
-// app.use(bodyParser.json());
 app.use(express.json());
 app.use(nocache());
 app.use(bodyParser.json());
@@ -190,6 +190,25 @@ app.post('/admin/profile', (req, res) => {
   });
 });
 
+app.post('/admin/makerequest', (req, res) => {
+  const serverID = req.body.serverID;
+  const period = req.body.period;
+  const message = req.body.message;
+  const requestDate = req.body.requestDate;
+
+  conn.query("INSERT INTO edbs.requests (message, requestDate, status, period, serverID) VALUES (?, ?, 'Not Completed', ?, ?)",
+    [message, requestDate, period, serverID],
+    function(err, results, fields) {
+      if (err) {
+        console.error(err);
+        res.status(500).json({error: 'Internal Server Error'});
+        return;
+      }
+      res.json("ok");
+    }
+  )
+
+});
 
 app.listen(process.env.PORT, () => {
   console.log("Server successfully running");

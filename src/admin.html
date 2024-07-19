@@ -18,10 +18,10 @@
         <img src="" alt="Your Image" id="profilepic">
     </div>
 
-    <h3 class="username" id="username">Erdem Sezen</h3>
-    <h4 class="rank" id="position">-Admin-</h4>
+    <h3 class="username" id="username"></h3>
+    <h4 class="rank" id="position"></h4>
 
-    <h2 id="userLocation">E-DBS<br>ENKA Merkez</h2>   
+    <h2 id="userLocation"></h2>   
 
     <ul>
         <li><a href="#" onclick="showDashboard('Backup Requests')">Backup Requests</a></li>
@@ -62,9 +62,10 @@
             <form id="requestForm">
               <label for="location">Location:</label>
               <select id="location" name="location">
-                <option value="server1">Server 1</option>
-                <option value="server2">Server 2</option>
-                <option value="server3">Server 3</option>
+                <option value="1">Enka Merkez</option>
+                <option value="2">Moscow</option>
+                <option value="3">Munich</option>
+                <option value="4">London</option>
               </select><br>
               
               <label>Request:</label><br><br>
@@ -96,6 +97,7 @@
 
               <button type="submit" class="submit-btn">Submit</button>
             </form>
+            <p></p>
         </div>
         <p class="periodicrequests">Periodic Requests:</p>
         <div class="table-container">

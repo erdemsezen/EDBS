@@ -12,20 +12,17 @@ document.getElementById('loginForm').addEventListener('submit', function(event) 
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({ username, password })
-    })
-    .then(response => {
+    }).then(response => {
         if (!response.ok) {
             document.getElementById('alert').style.display = "block";
             document.getElementById('password').value = '';
             throw new Error('Network response was not ok');
         }
         return response.json(); // Return the promise for parsing JSON
-    })
-    .then(data => {
+    }).then(data => {
         localStorage.setItem('token', data.token); // Set token in localStorage
         forwardPage(); // Proceed to forwardPage after successful token retrieval
-    })
-    .catch(error => {
+    }).catch(error => {
     console.error('Error:', error);
     });
 });
@@ -37,12 +34,10 @@ function forwardPage() {
         headers: {
             'Authorization': token
         }
-    })
-    .then(response => {return response.json();})
+    }).then(response => {return response.json();})
     .then(data => {
         window.location.href = data.user.route;
-    })
-    .catch(error => {
+    }).catch(error => {
         alert(error);
       });
 }
