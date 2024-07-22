@@ -75,6 +75,20 @@ app.post('/', function(req, res) {
   );
 });
 
+app.post('/profile', (req, res) => {
+  conn.query("SELECT u.firstName, u.lastName, u.position, u.imagePath, s.location FROM edbs.users u JOIN edbs.servers s ON u.serverID = s.serverID WHERE u.username = ?",
+    [currentUser], 
+    (err, results, fields) => {
+    if (err) {
+      console.error('Error querying MySQL:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+
+    res.json(results);
+  });
+});
+
 app.get('/getJWTData', verifyToken, (req, res) => {
   res.json({user: req.user});
 });
@@ -83,7 +97,7 @@ app.get('/admin', async(req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
-app.post('/admin/backupTable', (req, res) => {
+app.post('/admin/backupRequestTable', (req, res) => {
   const col = req.body.col;
   const order = req.body.order;
   
@@ -146,7 +160,7 @@ app.post('/admin/getlog'), (req, res) => {
     console.log(results[0]);
     res.json(results[0]);
   }
-}
+};
 
 app.post('/admin/deleteRequest', (req, res) =>{
   const requestID = req.body.requestID;
@@ -214,20 +228,6 @@ app.post('/admin/periodicRequests', (req, res) => {
   });
 });
 
-app.post('/admin/profile', (req, res) => {
-  conn.query("SELECT u.firstName, u.lastName, u.position, u.imagePath, s.location FROM edbs.users u JOIN edbs.servers s ON u.serverID = s.serverID WHERE u.username = ?",
-    [currentUser], 
-    (err, results, fields) => {
-    if (err) {
-      console.error('Error querying MySQL:', err);
-      res.status(500).json({ error: 'Internal Server Error' });
-      return;
-    }
-
-    res.json(results);
-  });
-});
-
 app.post('/admin/makerequest', (req, res) => {
   const serverID = req.body.serverID;
   const period = req.body.period;
@@ -264,20 +264,62 @@ app.post('/takeBackup', (req, res) => {
       }
       res.json("ok");
     });
-})
+});
 
-// app.post('/takeBackup2', (req, res) => {
-//   let query = "INSERT INTO edbs.backupusers (backupID, username) VALUES ((SELECT MAX(backupID) FROM edbs.backups), ?)"
+app.get('/home', (req, res) => {
+  res.sendFile(path.join(__dirname, 'home.html'));
+});
 
-//     conn.query(query, [currentUser], (err, results, fields) => {
-//       if (err) {
-//         console.error('Error querying MySQL:', err);
-//         res.status(500).json({ error: 'Internal Server Error' });
-//         return;
-//       }
-//       res.json("ok");
-//     });
-// })
+app.post('/home/backupRequestTable', (req, res) => {
+  const col = req.body.col;
+  const order = req.body.order;
+  
+  let query = "SELECT r.requestID, r.message, r.requestDate, r.status FROM edbs.requests r JOIN edbs.users u ON r.serverID = u.serverID WHERE u.username = ?";
+  
+  if (col !== "any" && order !== "any") {
+    query += ` ORDER BY ${col} ${order}`;
+  }
+  
+  conn.query(query, [currentUser], (err, results, fields) => {
+    if (err) {
+      console.error('Error querying MySQL:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+
+    results.forEach(result => {
+      result.requestDate.setDate(result.requestDate.getDate() + 1);
+    });
+
+    res.json(results); // Send JSON response with backup requests data
+  });
+
+}); 
+
+app.post('/home/logsTable', (req, res) => {
+  const col = req.body.col;
+  const order = req.body.order;
+  
+  let query = "SELECT b.backupID, b.backupDate, s.location FROM edbs.backups b JOIN edbs.servers s ON b.serverID = s.serverID JOIN edbs.backupusers bu ON b.backupID = bu.backupID JOIN edbs.users u ON bu.username = u.username WHERE u.username = ?";
+
+  if (col !== "any" && order !== "any") {
+    query += ` ORDER BY ${col} ${order}`;
+  }
+  
+  conn.query(query, [currentUser], (err, results, fields) => {
+    if (err) {
+        console.error('Error querying MySQL:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+        return;
+    }
+
+    results.forEach(result => {
+      result.backupDate.setHours(result.backupDate.getHours() + 3);
+    })
+
+    res.json(results);
+  });
+}); 
 
 app.listen(process.env.PORT, () => {
   console.log("Server successfully running");

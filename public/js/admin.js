@@ -136,13 +136,10 @@ function viewLog(button) {
   console.error('Error:', error);
 });
 }
-
 closePopupBtn.addEventListener('click', function() {
   popup.style.display = 'none';
   logstablecontainer.style.display = 'block';
 });
-
-// Close the popup if user clicks outside of it
 window.addEventListener('click', function(event) {
   if (event.target === popup) {
     popup.style.display = 'none';
@@ -151,7 +148,7 @@ window.addEventListener('click', function(event) {
 });
 
 function populateBackupRequestsTable(col, order) {
-  fetch('/admin/backupTable', {
+  fetch('/admin/backupRequestTable', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -256,7 +253,7 @@ function populatePeriodicTable(col, order) {
 }
 
 function populateProfilePanel() {
-  fetch('/admin/profile', {
+  fetch('/profile', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
