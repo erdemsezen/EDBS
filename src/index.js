@@ -248,6 +248,37 @@ app.post('/admin/makerequest', (req, res) => {
 
 });
 
+app.post('/takeBackup', (req, res) => { 
+  let query = "START TRANSACTION; "+
+              "INSERT INTO edbs.backups (log, backupDate, serverID) VALUES ('AAAAA', NOW(), (SELECT serverID FROM edbs.users WHERE username = ?)); "+
+              "SET @backupID = (SELECT MAX(backupID) FROM edbs.backups); "+
+              "INSERT INTO edbs.backupusers (backupID, username) "+
+              "VALUES (@backupID, ?); "+
+              "COMMIT;"
+
+    conn.query(query, [currentUser, currentUser], (err, results, fields) => {
+      if (err) {
+        console.error('Error querying MySQL:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+        return;
+      }
+      res.json("ok");
+    });
+})
+
+// app.post('/takeBackup2', (req, res) => {
+//   let query = "INSERT INTO edbs.backupusers (backupID, username) VALUES ((SELECT MAX(backupID) FROM edbs.backups), ?)"
+
+//     conn.query(query, [currentUser], (err, results, fields) => {
+//       if (err) {
+//         console.error('Error querying MySQL:', err);
+//         res.status(500).json({ error: 'Internal Server Error' });
+//         return;
+//       }
+//       res.json("ok");
+//     });
+// })
+
 app.listen(process.env.PORT, () => {
   console.log("Server successfully running");
 });

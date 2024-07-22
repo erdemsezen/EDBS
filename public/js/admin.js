@@ -40,6 +40,27 @@ function showDashboard(dashboardName) {
   document.getElementById('dashboardTitle').textContent = dashboardName;
 }
 
+function takeBackup(button) {
+
+  var statusMessage = document.getElementById('statusMessage');
+  fetch('/takeBackup', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+  }).then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  }).then(data => {
+    statusMessage.innerHTML = 'Backup successfully taken.';
+  }).catch(error => {
+    console.error('Error:', error);
+    statusMessage.innerHTML = 'Could not take backup.';
+  });
+}
+
 // Log out menu
 function logout() {
   localStorage.removeItem('token');
@@ -260,6 +281,7 @@ function populateProfilePanel() {
   });
 }
 
+// Populate pages
 populateProfilePanel();
 populateBackupRequestsTable('any', 'any');
 populateLogsTable('any', 'any');
@@ -438,5 +460,4 @@ document.getElementById('requestForm').addEventListener('submit', function(submi
     document.getElementById("backupMessage").value = "";
   });
 });
-
 
