@@ -85,96 +85,185 @@ function deleteRow(button) {
   });
 }
 
-function viewLog(button) {
+const popup = document.getElementById('popup');
+const popupContent = document.getElementById('popup-content');
+const closePopupBtn = document.getElementById('closePopup');
+const logstablecontainer = document.getElementById("logstable");
 
+function viewLog(button) {
+  var row = button.closest('tr');
+  if(row) {
+    var backupID = row.id;
+  }
+
+  fetch('/admin/getlog', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({ backupID })
+}).then(response => {
+  if (!response.ok) {
+    throw new Error('Network response was not ok');
+  }
+  return response.json();
+}).then(data => {
+  popup.style.display = 'block';
+  logstablecontainer.style.display = 'none';
+  popupContent.textContentL = data.log;
+}).catch(error => {
+  console.error('Error:', error);
+});
 }
 
-// Insert user info
-fetch('/admin/profile', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-}).then(response => {
-  if (!response.ok) {
-    throw new Error('Network response was not ok');
-  }
-  return response.json();
-}).then(data => {
-  const userinfo = data[0];
-  const profilePicSrc = userinfo.imgPath ? userinfo.imgPath : 'img/pfp.png';
-
-  document.getElementById("profilepic").src = profilePicSrc;
-  document.getElementById("username").innerHTML = userinfo.firstName + " " + userinfo.lastName;
-  document.getElementById("position").innerHTML = "-" + userinfo.position + "-";
-  document.getElementById("userLocation").innerHTML = "E-DBS<br>" + userinfo.location;
-
-}).catch(error => {
-  document.getElementById("profilepic").src = 'img/pfp.png';
-  console.error('Error:', error);
+closePopupBtn.addEventListener('click', function() {
+  popup.style.display = 'none';
+  logstablecontainer.style.display = 'block';
 });
 
-// Populate Backup Requests Table
-fetch('/admin/backupTable', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-}).then(response => {
-  if (!response.ok) {
-    throw new Error('Network response was not ok');
+// Close the popup if user clicks outside of it
+window.addEventListener('click', function(event) {
+  if (event.target === popup) {
+    popup.style.display = 'none';
+    logstablecontainer.style.display = 'block';
   }
-  return response.json();
-}).then(data => {
-  const tableBody = document.querySelector('#backuprequests tbody');
-  tableBody.innerHTML = ''; // Clear existing rows
+});
 
-  data.forEach(request => {
-    const row = document.createElement('tr');
-    row.id = request.requestID
-    row.innerHTML = `
-      <td>${request.message}</td>
-      <td>${request.requestDate.split("T")[0]}</td>
-      <td>${request.location}</td>
-      <td>${request.status}</td>
-      <td><button onclick="deleteRow(this)">DELETE</button></td>
-    `;
-    tableBody.appendChild(row);
+function populateBackupRequestsTable(col, order) {
+  fetch('/admin/backupTable', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ col:col, order:order })
+  }).then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  }).then(data => {
+    const tableBody = document.querySelector('#backuprequests tbody');
+    tableBody.innerHTML = ''; // Clear existing rows
+  
+    data.forEach(request => {
+      const row = document.createElement('tr');
+      row.id = request.requestID
+      row.innerHTML = `
+        <td>${request.message}</td>
+        <td>${request.requestDate.split("T")[0]}</td>
+        <td>${request.location}</td>
+        <td>${request.status}</td>
+        <td><button onclick="deleteRow(this)">DELETE</button></td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }).catch(error => {
+    console.error('Error:', error);
   });
-}).catch(error => {
-  console.error('Error:', error);
-});
+}
 
-// Populate See Logs Table
-fetch('/admin/logsTable', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-}).then(response => {
-  if (!response.ok) {
-    throw new Error('Network response was not ok');
-  }
-  return response.json();
-}).then(data => {
-  const tableBody = document.querySelector('#seelogs tbody');
-  tableBody.innerHTML = ''; // Clear existing rows
-
-  data.forEach(request => {
-    const row = document.createElement('tr');
-    row.id = request.backupID
-    row.innerHTML = `
-      <td>${request.location}</td>
-      <td>${request.username}</td>
-      <td>${request.backupDate.split("T")[0]}</td>
-      <td>${request.backupDate.split("T")[1].split(".")[0]}</td>
-      <td><button onclick="viewLog(this)">VIEW</button></td>
-    `;
-    tableBody.appendChild(row);
+function populateLogsTable(col, order) {
+  fetch('/admin/logsTable', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ col:col, order:order })
+  }).then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  }).then(data => {
+    const tableBody = document.querySelector('#seelogs tbody');
+    tableBody.innerHTML = ''; // Clear existing rows
+  
+    data.forEach(request => {
+      const row = document.createElement('tr');
+      row.id = request.backupID
+      row.innerHTML = `
+        <td>${request.location}</td>
+        <td>${request.username}</td>
+        <td>${request.backupDate.split("T")[0]}</td>
+        <td>${request.backupDate.split("T")[1].split(".")[0]}</td>
+        <td><button onclick="viewLog(this)">VIEW</button></td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }).catch(error => {
+    console.error('Error:', error);
   });
-}).catch(error => {
-  console.error('Error:', error);
-});
+}
+
+function populatePeriodicTable(col, order) {
+  fetch('/admin/periodicRequests', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': token
+    },
+    body: JSON.stringify({ col:col, order:order })
+  }).then(response => {
+    if (!response.ok) {
+      if (response.status === 401) {
+        localStorage.removeItem('token');
+        window.location.href = "/";
+        }
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  }).then(data => {
+    const tableBody = document.querySelector('#makerequest tbody');
+    tableBody.innerHTML = ''; // Clear existing rows
+  
+    data.forEach(request => {
+      const row = document.createElement('tr');
+      row.id = request.requestID
+      row.innerHTML = `
+        <td>${request.message}</td>
+        <td>${request.location}</td>
+        <td>${request.period}</td>
+        <td>${request.nextDate.split("T")[0]}</td>
+        <td><button onclick="deleteRow(this)">DELETE</button></td>
+      `;
+      tableBody.appendChild(row);
+    });
+  }).catch(error => {
+    console.error('Error:', error);
+  });
+  
+}
+
+function populateProfilePanel() {
+  fetch('/admin/profile', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }).then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  }).then(data => {
+    const userinfo = data[0];
+    const profilePicSrc = userinfo.imgPath ? userinfo.imgPath : 'img/pfp.png';
+  
+    document.getElementById("profilepic").src = profilePicSrc;
+    document.getElementById("username").innerHTML = userinfo.firstName + " " + userinfo.lastName;
+    document.getElementById("position").innerHTML = "-" + userinfo.position + "-";
+    document.getElementById("userLocation").innerHTML = "E-DBS<br>" + userinfo.location;
+  
+  }).catch(error => {
+    document.getElementById("profilepic").src = 'img/pfp.png';
+    console.error('Error:', error);
+  });
+}
+
+populateProfilePanel();
+populateBackupRequestsTable('any', 'any');
+populateLogsTable('any', 'any');
+populatePeriodicTable('any', 'any');
 
 // Sortable Tables
 document.addEventListener("DOMContentLoaded", function() {
@@ -183,32 +272,33 @@ document.addEventListener("DOMContentLoaded", function() {
   const backupHeaders = backupTable.querySelectorAll('th[data-sort-by]');
   let currentBackupSortColumn = null;
   let isBackupAscending = true;
+  let ASCorDESC = "ASC";
 
   backupHeaders.forEach(header => {
-      header.addEventListener('click', function() {
-          const sortBy = this.getAttribute('data-sort-by');
+    header.addEventListener('click', function() {
+      const sortBy = this.getAttribute('data-sort-by');
 
-          if (sortBy === currentBackupSortColumn) {
-              isBackupAscending = !isBackupAscending;
-          } else {
-              backupHeaders.forEach(header => {
-                  header.classList.remove('arrow-up', 'arrow-down');
-              });
-              currentBackupSortColumn = sortBy;
-              isBackupAscending = true;
-          }
+      if (sortBy === currentBackupSortColumn) {
+        isBackupAscending = !isBackupAscending; 
+      } else {
+        backupHeaders.forEach(header => {
+          header.classList.remove('arrow-up', 'arrow-down');
+        });
+        currentBackupSortColumn = sortBy;
+        isBackupAscending = true;
+      }
 
-          if (isBackupAscending) {
-              this.classList.add('arrow-up');
-              this.classList.remove('arrow-down');
-          } else {
-              this.classList.add('arrow-down');
-              this.classList.remove('arrow-up');
-          }
-
-          console.log(`Sorted backup requests by ${sortBy} in ${isBackupAscending ? 'ascending' : 'descending'} order.`);
-          // Perform actual sorting here
-      });
+      if (isBackupAscending) {
+        this.classList.add('arrow-up');
+        this.classList.remove('arrow-down');
+        ASCorDESC = "ASC"
+      } else {
+        this.classList.add('arrow-down');
+        this.classList.remove('arrow-up');
+        ASCorDESC = "DESC"
+      }
+      populateBackupRequestsTable(currentBackupSortColumn, ASCorDESC);
+    });
   });
 
   // See Logs table sorting logic
@@ -235,13 +325,13 @@ document.addEventListener("DOMContentLoaded", function() {
         if (isLogsAscending) {
           this.classList.add('arrow-up');
           this.classList.remove('arrow-down');
+          ASCorDESC = "ASC";
         } else {
           this.classList.add('arrow-down');
           this.classList.remove('arrow-up');
+          ASCorDESC = "DESC";
         }
-
-        console.log(`Sorted logs by ${sortBy} in ${isLogsAscending ? 'ascending' : 'descending'} order.`);
-        // Perform actual sorting here
+        populateLogsTable(currentLogsSortColumn, ASCorDESC);
       });
     }
   });
@@ -270,13 +360,13 @@ document.addEventListener("DOMContentLoaded", function() {
         if (isRequestAscending) {
           this.classList.add('arrow-up');
           this.classList.remove('arrow-down');
+          ASCorDESC = "ASC";
         } else {
           this.classList.add('arrow-down');
           this.classList.remove('arrow-up');
+          ASCorDESC = "DESC";
         }
-
-        console.log(`Sorted make request by ${sortBy} in ${isRequestAscending ? 'ascending' : 'descending'} order.`);
-        // Perform actual sorting here
+        populatePeriodicTable(currentRequestSortColumn, ASCorDESC);
       });
   }
   });
@@ -341,46 +431,12 @@ document.getElementById('requestForm').addEventListener('submit', function(submi
   }).then(data => {
     statusMessage.innerHTML = 'Request successfully created.';
     console.log('Request successfully created.');
+    document.getElementById("backupMessage").value = "";
   }).catch(error => {
     console.error('Error:', error);
     statusMessage.innerHTML = 'Could not create request.';
+    document.getElementById("backupMessage").value = "";
   });
 });
 
-
-// Populate periodic requests table
-fetch('/admin/periodicRequests', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': token
-  },
-}).then(response => {
-  if (!response.ok) {
-    if (response.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = "/";
-      }
-    throw new Error('Network response was not ok');
-  }
-  return response.json();
-}).then(data => {
-  const tableBody = document.querySelector('#makerequest tbody');
-  tableBody.innerHTML = ''; // Clear existing rows
-
-  data.forEach(request => {
-    const row = document.createElement('tr');
-    row.id = request.requestID
-    row.innerHTML = `
-      <td>${request.message}</td>
-      <td>${request.location}</td>
-      <td>${request.period}</td>
-      <td>${request.nextDate.split("T")[0]}</td>
-      <td><button onclick="deleteRow(this)">DELETE</button></td>
-    `;
-    tableBody.appendChild(row);
-  });
-}).catch(error => {
-  console.error('Error:', error);
-});
 

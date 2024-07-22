@@ -29,7 +29,6 @@ conn.connect(function(err) {
   console.log("Connected!");
 });
 
-app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.json());
 app.use(nocache());
@@ -85,25 +84,42 @@ app.get('/admin', async(req, res) => {
 });
 
 app.post('/admin/backupTable', (req, res) => {
-    conn.query("SELECT r.requestID, r.message, r.requestDate, s.location, r.status FROM edbs.requests r JOIN edbs.servers s ON r.serverID = s.serverID", 
-    (err, results, fields) => {
-      if (err) {
-          console.error('Error querying MySQL:', err);
-          res.status(500).json({ error: 'Internal Server Error' });
-          return;
-      }
+  const col = req.body.col;
+  const order = req.body.order;
+  
+  let query = "SELECT r.requestID, r.message, r.requestDate, s.location, r.status FROM edbs.requests r JOIN edbs.servers s ON r.serverID = s.serverID";
+  
+  if (col !== "any" && order !== "any") {
+    query += ` ORDER BY ${col} ${order}`;
+  }
+  
+  conn.query(query, (err, results, fields) => {
+    if (err) {
+      console.error('Error querying MySQL:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
 
-      results.forEach(result => {
-        result.requestDate.setDate(result.requestDate.getDate() + 1);
-      })
+    results.forEach(result => {
+      result.requestDate.setDate(result.requestDate.getDate() + 1);
+    });
 
-      res.json(results); // Send JSON response with backup requests data
+    res.json(results); // Send JSON response with backup requests data
   });
+
 }); 
 
 app.post('/admin/logsTable', (req, res) => {
-  conn.query("SELECT b.backupID, b.backupDate, s.location, bu.username FROM edbs.backups b JOIN edbs.servers s ON b.serverID = s.serverID JOIN edbs.backupusers bu ON b.backupID = bu.backupID", 
-  (err, results, fields) => {
+  const col = req.body.col;
+  const order = req.body.order;
+  
+  let query = "SELECT b.backupID, b.backupDate, s.location, bu.username FROM edbs.backups b JOIN edbs.servers s ON b.serverID = s.serverID JOIN edbs.backupusers bu ON b.backupID = bu.backupID";
+
+  if (col !== "any" && order !== "any") {
+    query += ` ORDER BY ${col} ${order}`;
+  }
+  
+  conn.query(query, (err, results, fields) => {
     if (err) {
         console.error('Error querying MySQL:', err);
         res.status(500).json({ error: 'Internal Server Error' });
@@ -114,9 +130,23 @@ app.post('/admin/logsTable', (req, res) => {
       result.backupDate.setHours(result.backupDate.getHours() + 3);
     })
 
-    res.json(results); // Send JSON response with backup requests data
-});
+    res.json(results);
+  });
 }); 
+
+app.post('/admin/getlog'), (req, res) => {
+  conn.query("SELECT log FROM edbs.servers WHERE backupID = ?"),
+  [backupID],
+  (err, results, fields) => {
+    if (err) {
+      console.error('Error querying MySQL:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    console.log(results[0]);
+    res.json(results[0]);
+  }
+}
 
 app.post('/admin/deleteRequest', (req, res) =>{
   const requestID = req.body.requestID;
@@ -133,8 +163,16 @@ app.post('/admin/deleteRequest', (req, res) =>{
 });
 
 app.post('/admin/periodicRequests', (req, res) => {
-  conn.query("SELECT r.requestID, r.message, s.location, r.period, r.requestDate AS nextDate FROM edbs.requests r JOIN edbs.servers s ON r.serverID = s.serverID WHERE r.period != 'None';", 
-    (err, results, fields) => {
+  const col = req.body.col;
+  const order = req.body.order;
+
+  let query = "SELECT r.requestID, r.message, s.location, r.period, r.requestDate AS nextDate FROM edbs.requests r JOIN edbs.servers s ON r.serverID = s.serverID WHERE r.period != 'None'"
+    
+  if (col !== "any" && order !== "any") {
+    query += ` ORDER BY ${col} ${order}`;
+  }
+  
+  conn.query(query, (err, results, fields) => {
     if (err) {
       console.error('Error querying MySQL:', err);
       res.status(500).json({ error: 'Internal Server Error' });

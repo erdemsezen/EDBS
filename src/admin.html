@@ -45,10 +45,10 @@
             <table class="sortable-table">
                 <thead> 
                     <tr>
-                        <th data-sort-by="Message">Message</th>
-                        <th data-sort-by="date">Date</th>
-                        <th data-sort-by="location">Location</th>
-                        <th data-sort-by="status">Status</th>
+                        <th data-sort-by="r.message">Message</th>
+                        <th data-sort-by="r.requestDate">Date</th>
+                        <th data-sort-by="s.location">Location</th>
+                        <th data-sort-by="r.status">Status</th>
                         <th></th>
                     </tr>
                 </thead>
@@ -104,10 +104,10 @@
             <table class="sortable-table">
                 <thead>
                   <tr>
-                    <th data-sort-by="Message">Message</th>
-                    <th data-sort-by="location">Location</th>
-                    <th data-sort-by="period">Period</th>
-                    <th data-sort-by="nextrequest">Next Request</th>
+                    <th data-sort-by="r.message">Message</th>
+                    <th data-sort-by="s.location">Location</th>
+                    <th data-sort-by="r.period">Period</th>
+                    <th data-sort-by="nextDate">Next Request</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -117,29 +117,28 @@
     </div>
 
     <div class="dashboard" id="seelogs" style="display: none;">
-        <div class="table-container">
-            <table class="sortable-table">
+        <div class="table-container" id="logstable">
+            <table class="sortable-table" >
                 <thead> 
                     <tr>
-                        <th data-sort-by="location">Location</th>
-                        <th data-sort-by="Taken by">Taken by</th>
-                        <th data-sort-by="date">Date</th>
-                        <th data-sort-by="time">Time</th>
+                        <th data-sort-by="s.location">Location</th>
+                        <th data-sort-by="bu.username">Taken by</th>
+                        <th data-sort-by="b.backupDate">Date</th>
+                        <th>Time</th>
                         <th>View Logs</th>
                       </tr>
                     </tr>
                 </thead>
-                <tbody>
-                    <tr>
-                        <td>Moscow</td>
-                        <td>erdem.sezen</td>
-                        <td>2024-07-16</td>
-                        <td>2024-07-16</td>
-                        <td><button onclick="viewLog(this)">VIEW</button></td>
-                    </tr>
-                </tbody>
+                <tbody></tbody>
             </table>
         </div>
+
+        <div id="popup" class="popup">
+            <span class="close" id="closePopup">&times;</span>
+            <div class="popup-content">
+                <p id="popup-content"></p>
+            </div>
+          </div>
     </div>
 
     <div class="dashboard" id="takebackup" style="display: none;">
