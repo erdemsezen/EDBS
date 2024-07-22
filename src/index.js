@@ -234,7 +234,7 @@ app.post('/admin/makerequest', (req, res) => {
   const message = req.body.message;
   const requestDate = req.body.requestDate;
 
-  conn.query("INSERT INTO edbs.requests (message, requestDate, status, period, serverID) VALUES (?, ?, 'Not Completed', ?, ?)",
+  conn.query("INSERT INTO edbs.requests (message, requestDate, status, period, serverID) VALUES (?, ?, 'Pending', ?, ?)",
     [message, requestDate, period, serverID],
     function(err, results, fields) {
       if (err) {

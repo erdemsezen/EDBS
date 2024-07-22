@@ -166,6 +166,32 @@ function populateBackupRequestsTable(col, order) {
     data.forEach(request => {
       const row = document.createElement('tr');
       row.id = request.requestID
+
+      let backgroundColor = '';
+      let yaziRenk = '';
+      switch (request.status) {
+          case 'Not Completed':
+              backgroundColor = 'orangered';
+              yaziRenk = 'White';
+              break;
+          case 'Pending':
+              backgroundColor = 'lightyellow'; // Adjust color as needed
+              break;
+          case 'Error':
+              backgroundColor = 'orange'; // Adjust color as needed
+              yaziRenk = 'White';
+              break;
+          case 'Completed':
+              backgroundColor = 'MediumSeaGreen';
+              yaziRenk = 'White';
+              break;
+          default:
+              backgroundColor = 'white'; // Default or other statuses
+              break;
+      }
+
+      row.style.backgroundColor = backgroundColor;
+      row.style.color = yaziRenk;
       row.innerHTML = `
         <td>${request.message}</td>
         <td>${request.requestDate.split("T")[0]}</td>
