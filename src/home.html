@@ -53,9 +53,23 @@
                 <tbody></tbody>
             </table>
         </div>
-    </div>
 
-    
+        <div id="backupPopup" class="popup">
+            <span class="close" id="closeBackupPopup">&times;</span>
+            <div class="popup-content">
+                <!-- <div id="dropzone">
+                    <p>Drag and drop files here</p>
+                </div> -->
+                <h2>File Upload</h2>
+                <form action="/upload" method="POST" enctype="multipart/form-data">
+                    <input type="file" name="file" required>
+                    <button type="submit">Upload File</button>
+                </form>
+                <p id="backupStatusMessage"></p>
+            </div>
+        </div>
+
+    </div>
 
     <div class="dashboard" id="seelogs" style="display: none;">
         <div class="table-container" id="logstable">

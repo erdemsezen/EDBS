@@ -106,6 +106,7 @@ function deleteRow(button) {
   });
 }
 
+// Pop-up algorithm
 const popup = document.getElementById('popup');
 const popupContent = document.getElementById('popup-content');
 const closePopupBtn = document.getElementById('closePopup');
@@ -170,24 +171,24 @@ function populateBackupRequestsTable(col, order) {
       let backgroundColor = '';
       let yaziRenk = '';
       switch (request.status) {
-          case 'Not Completed':
-              backgroundColor = 'orangered';
-              yaziRenk = 'White';
-              break;
-          case 'Pending':
-              backgroundColor = 'lightyellow'; // Adjust color as needed
-              break;
-          case 'Error':
-              backgroundColor = 'orange'; // Adjust color as needed
-              yaziRenk = 'White';
-              break;
-          case 'Completed':
-              backgroundColor = 'MediumSeaGreen';
-              yaziRenk = 'White';
-              break;
-          default:
-              backgroundColor = 'white'; // Default or other statuses
-              break;
+        case 'Not Completed':
+          backgroundColor = 'orangered';
+          yaziRenk = 'White';
+          break;
+        case 'Pending':
+          backgroundColor = 'lightyellow'; // Adjust color as needed
+          break;
+        case 'Error':
+          backgroundColor = 'orange'; // Adjust color as needed
+          yaziRenk = 'White';
+          break;
+        case 'Completed':
+          backgroundColor = 'MediumSeaGreen';
+          yaziRenk = 'White';
+          break;
+        default:
+          backgroundColor = 'white'; // Default or other statuses
+          break;
       }
 
       row.style.backgroundColor = backgroundColor;

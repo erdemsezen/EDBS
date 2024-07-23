@@ -39,6 +39,57 @@ function showDashboard(dashboardName) {
   document.getElementById('dashboardTitle').textContent = dashboardName;
 }
 
+function sendBackup(button) {
+  const popup = document.getElementById('backupPopup');
+  popup.style.display = 'block';
+
+  const closePopup = document.getElementById('closeBackupPopup');
+  closePopup.onclick = function() { popup.style.display = 'none'; };
+
+  var dropZone = document.getElementById('dropzone');
+
+  dropZone.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    dropZone.classList.add('hover');
+  });
+
+  dropZone.addEventListener('dragleave', (event) => {
+    event.preventDefault();
+    dropZone.classList.remove('hover');
+  });
+
+  dropZone.addEventListener('drop', (event) => {
+    event.preventDefault();
+    dropZone.classList.remove('hover');
+    var files = event.dataTransfer.files;
+    handlesFiles(files);
+  });
+
+  function handlesFiles(files) {
+    files.forEach(file => {
+      uploadFile(file);
+    })
+  }
+
+  function uploadFile(file) {
+    var formData = new FormData();
+    formData.append('file', file);
+    fetch('/upload', {
+      method: 'POST',
+      body: formData
+    }).then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json()
+    }).then(data => {
+
+    })
+  }
+}
+
+function deleteRow(button) {}
+
 function takeBackup(button) {
 
   var statusMessage = document.getElementById('statusMessage');
@@ -110,11 +161,39 @@ function populateBackupRequestsTable(col, order) {
       data.forEach(request => {
         const row = document.createElement('tr');
         row.id = request.requestID
+
+        let buttonType = "'sendBackup(this)'>SEND BACKUP";
+        let backgroundColor = '';
+        let yaziRenk = '';
+        switch (request.status) {
+          case 'Not Completed':
+            backgroundColor = 'orangered';
+            yaziRenk = 'White';
+            break;
+          case 'Pending':
+            backgroundColor = 'lightyellow'; // Adjust color as needed
+            break;
+          case 'Error':
+            backgroundColor = 'orange'; // Adjust color as needed
+            yaziRenk = 'White';
+            break;
+          case 'Completed':
+            backgroundColor = 'MediumSeaGreen';
+            yaziRenk = 'White';
+            buttonType = "'deleteRow(this)'>DELETE"
+            break;
+          default:
+            backgroundColor = 'white'; // Default or other statuses
+            break;
+        }
+  
+        row.style.backgroundColor = backgroundColor;
+        row.style.color = yaziRenk;
         row.innerHTML = `
           <td>${request.message}</td>
           <td>${request.requestDate.split("T")[0]}</td>
           <td>${request.status}</td>
-          <td><button onclick="sendBackup(this)">SEND BACKUP</button></td>
+          <td><button onclick=${buttonType}</button></td>
         `;
         tableBody.appendChild(row);
       });

@@ -5,10 +5,20 @@ const bodyParser = require('body-parser');
 const conn = require('./db_connection.js');
 const jwt = require('jsonwebtoken');
 const nocache = require("nocache");
+// const multer = require("multer");
+const fileUpload = require('express-fileupload');
 require('dotenv').config();
 const jwtSecret = process.env.JWT_SECRET;
 let currentUser = "";
 
+// const storage = multer.diskStorage({
+//   destination : function(request, file, callback) {
+//     callback(null, '/uploads');
+//   },
+//   filename : function(request, file, callback) {
+//     callback(null, file.filename = '-' + Date.now() + path.extname(file.originalname));
+//   }
+// })
 
 function verifyToken(req, res, next) {
   const token = req.headers.authorization;
@@ -33,6 +43,11 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.use(express.json());
 app.use(nocache());
 app.use(bodyParser.json());
+app.use(fileUpload({
+  limits: { fileSize: 50 * 1024 * 1024},
+  useTempFiles : true,
+  tempFileDir : '/uploads/'
+}));
 
 app.get('/', async(req, res) => {
   res.sendFile(path.join(__dirname, 'login.html'));
@@ -92,6 +107,37 @@ app.post('/profile', (req, res) => {
 app.get('/getJWTData', verifyToken, (req, res) => {
   res.json({user: req.user});
 });
+
+// app.post('/upload', upload.single('file'), (req, res) => {
+//   res.json({ filename : req.file.filename });
+// })
+
+app.post('/upload', async function(req, res, next) {
+  if (!req.files || !req.files.file) {
+    return res.status(422).send("No files were uploaded");
+  }
+  const uploadedFile = req.files.file;
+    // Print information about the file to the console
+    console.log(`File Name: ${uploadedFile.name}`);
+    console.log(`File Size: ${uploadedFile.size}`);
+    console.log(`File MD5 Hash: ${uploadedFile.md5}`);
+    console.log(`File Mime Type: ${uploadedFile.mimetype}`);
+  
+  let query = "START TRANSACTION; "+
+  "INSERT INTO edbs.backups (log, backupDate, serverID) VALUES (?, NOW(), (SELECT serverID FROM edbs.users WHERE username = ?)); "+
+  "SET @backupID = (SELECT MAX(backupID) FROM edbs.backups); "+
+  "INSERT INTO edbs.backupusers (backupID, username) "+
+  "VALUES (@backupID, ?); "+
+  "COMMIT;"
+
+  conn.query(query, [currentUser, currentUser], (err, results, fields) => {
+  if (err) {
+  console.error('Error querying MySQL:', err);
+  res.status(500).json({ error: 'Internal Server Error' });
+  return;
+  }
+
+})
 
 app.get('/admin', async(req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
