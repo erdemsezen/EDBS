@@ -18,6 +18,10 @@ if (!token) {
     window.location.href = '/';
 }
 
+function downloadFile(backupID) {
+  window.location.href = `/download/${backupID}`;
+}
+
 function showDashboard(dashboardName) {
     // Hide all dashboards
     // var dashboards = document.getElementsByClassName('dashboard');
@@ -26,7 +30,7 @@ function showDashboard(dashboardName) {
     // }
 
   document.getElementById('backuprequests').style.display = 'none';
-  document.getElementById('seelogs').style.display = 'none';
+  document.getElementById('backupfiles').style.display = 'none';
   document.getElementById('takebackup').style.display = 'none';
   
   // Display the selected dashboard
@@ -72,8 +76,10 @@ function sendBackup(button) {
   }
 
   function uploadFile(file) {
+    var statusMessage = document.getElementById('statusMessage');
     var formData = new FormData();
     formData.append('file', file);
+
     fetch('/upload', {
       method: 'POST',
       body: formData
@@ -83,12 +89,13 @@ function sendBackup(button) {
       }
       return response.json()
     }).then(data => {
-
+      statusMessage.innerHTML = 'Upload Successful';
+    }).catch(error => {
+      console.error('Error:', error);
+      statusMessage.innerHTML = 'Upload Failed';
     })
   }
 }
-
-function deleteRow(button) {}
 
 function takeBackup(button) {
 
@@ -202,8 +209,8 @@ function populateBackupRequestsTable(col, order) {
     });
 }
 
-function populateLogsTable(col, order) {
-  fetch('/home/logsTable', {
+function populateFilesTable(col, order) {
+  fetch('/home/filesTable', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -215,7 +222,7 @@ function populateLogsTable(col, order) {
     }
     return response.json();
   }).then(data => {
-    const tableBody = document.querySelector('#seelogs tbody');
+    const tableBody = document.querySelector('#backupfiles tbody');
     tableBody.innerHTML = ''; // Clear existing rows
   
     data.forEach(request => {
@@ -225,7 +232,7 @@ function populateLogsTable(col, order) {
         <td>${request.location}</td>
         <td>${request.backupDate.split("T")[0]}</td>
         <td>${request.backupDate.split("T")[1].split(".")[0]}</td>
-        <td><button onclick="viewLog(this)">VIEW</button></td>
+        <td><button onclick="downloadFile(${request.backupID})">DOWNLOAD</button></td>
       `;
       tableBody.appendChild(row);
     });
@@ -236,7 +243,7 @@ function populateLogsTable(col, order) {
 
 populateProfilePanel();
 populateBackupRequestsTable('any', 'any');
-populateLogsTable('any', 'any');
+populateFilesTable('any', 'any');
 
 document.addEventListener("DOMContentLoaded", function() {
   // Backup Requests table sorting logic
@@ -273,28 +280,28 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   });
 
-  // See Logs table sorting logic
-  const logsTable = document.querySelector('#seelogs .sortable-table');
-  const logsHeaders = logsTable.querySelectorAll('th[data-sort-by]');
-  let currentLogsSortColumn = null;
-  let isLogsAscending = true;
+  // See Files table sorting logic
+  const filesTable = document.querySelector('#backupfiles .sortable-table');
+  const filesHeaders = filesTable.querySelectorAll('th[data-sort-by]');
+  let currentFilesSortColumn = null;
+  let isFilesAscending = true;
 
-  logsHeaders.forEach((header, index) => {
-    if (index < logsHeaders.length) { // Exclude last header
+  filesHeaders.forEach((header, index) => {
+    if (index < filesHeaders.length) { // Exclude last header
       header.addEventListener('click', function() {
         const sortBy = this.getAttribute('data-sort-by');
 
-        if (sortBy === currentLogsSortColumn) {
-          isLogsAscending = !isLogsAscending;
+        if (sortBy === currentFilesSortColumn) {
+          isFilesAscending = !isFilesAscending;
         } else {
-          logsHeaders.forEach(header => {
+          filesHeaders.forEach(header => {
             header.classList.remove('arrow-up', 'arrow-down');
           });
-          currentLogsSortColumn = sortBy;
-          isLogsAscending = true;
+          currentFilesSortColumn = sortBy;
+          isFilesAscending = true;
         }
 
-        if (isLogsAscending) {
+        if (isFilesAscending) {
           this.classList.add('arrow-up');
           this.classList.remove('arrow-down');
           ASCorDESC = "ASC";
@@ -303,7 +310,7 @@ document.addEventListener("DOMContentLoaded", function() {
           this.classList.remove('arrow-up');
           ASCorDESC = "DESC";
         }
-        populateLogsTable(currentLogsSortColumn, ASCorDESC);
+        populateFilesTable(currentFilesSortColumn, ASCorDESC);
       });
     }
   });

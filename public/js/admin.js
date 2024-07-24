@@ -19,15 +19,9 @@ if (!token) {
 }
 
 function showDashboard(dashboardName) {
-    // Hide all dashboards
-    // var dashboards = document.getElementsByClassName('dashboard');
-    // for (var i = 0; i < dashboards.length; i++) {
-    //     dashboards[i].style.display = 'none';
-    // }
-
   document.getElementById('backuprequests').style.display = 'none';
   document.getElementById('makerequest').style.display = 'none';
-  document.getElementById('seelogs').style.display = 'none';
+  document.getElementById('backupfiles').style.display = 'none';
   document.getElementById('takebackup').style.display = 'none';
   
   // Display the selected dashboard
@@ -106,47 +100,9 @@ function deleteRow(button) {
   });
 }
 
-// Pop-up algorithm
-const popup = document.getElementById('popup');
-const popupContent = document.getElementById('popup-content');
-const closePopupBtn = document.getElementById('closePopup');
-const logstablecontainer = document.getElementById("logstable");
-
-function viewLog(button) {
-  var row = button.closest('tr');
-  if(row) {
-    var backupID = row.id;
-  }
-
-  fetch('/admin/getlog', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({ backupID })
-}).then(response => {
-  if (!response.ok) {
-    throw new Error('Network response was not ok');
-  }
-  return response.json();
-}).then(data => {
-  popup.style.display = 'block';
-  logstablecontainer.style.display = 'none';
-  popupContent.textContentL = data.log;
-}).catch(error => {
-  console.error('Error:', error);
-});
+function downloadFile(backupID) {
+  window.location.href = `/download/${backupID}`;
 }
-closePopupBtn.addEventListener('click', function() {
-  popup.style.display = 'none';
-  logstablecontainer.style.display = 'block';
-});
-window.addEventListener('click', function(event) {
-  if (event.target === popup) {
-    popup.style.display = 'none';
-    logstablecontainer.style.display = 'block';
-  }
-});
 
 function populateBackupRequestsTable(col, order) {
   fetch('/admin/backupRequestTable', {
@@ -207,8 +163,8 @@ function populateBackupRequestsTable(col, order) {
   });
 }
 
-function populateLogsTable(col, order) {
-  fetch('/admin/logsTable', {
+function populateFilesTable(col, order) {
+  fetch('/admin/filesTable', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -220,7 +176,7 @@ function populateLogsTable(col, order) {
     }
     return response.json();
   }).then(data => {
-    const tableBody = document.querySelector('#seelogs tbody');
+    const tableBody = document.querySelector('#backupfiles tbody');
     tableBody.innerHTML = ''; // Clear existing rows
   
     data.forEach(request => {
@@ -231,7 +187,7 @@ function populateLogsTable(col, order) {
         <td>${request.username}</td>
         <td>${request.backupDate.split("T")[0]}</td>
         <td>${request.backupDate.split("T")[1].split(".")[0]}</td>
-        <td><button onclick="viewLog(this)">VIEW</button></td>
+        <td><button onclick="downloadFile(${request.backupID})">DOWNLOAD</button></td>
       `;
       tableBody.appendChild(row);
     });
@@ -308,7 +264,7 @@ function populateProfilePanel() {
 // Populate pages
 populateProfilePanel();
 populateBackupRequestsTable('any', 'any');
-populateLogsTable('any', 'any');
+populateFilesTable('any', 'any');
 populatePeriodicTable('any', 'any');
 
 // Sortable Tables
@@ -347,28 +303,28 @@ document.addEventListener("DOMContentLoaded", function() {
     });
   });
 
-  // See Logs table sorting logic
-  const logsTable = document.querySelector('#seelogs .sortable-table');
-  const logsHeaders = logsTable.querySelectorAll('th[data-sort-by]');
-  let currentLogsSortColumn = null;
-  let isLogsAscending = true;
+  // Backup Files table sorting logic
+  const filesTable = document.querySelector('#backupfiles .sortable-table');
+  const filesHeaders = filesTable.querySelectorAll('th[data-sort-by]');
+  let currentFilesSortColumn = null;
+  let isFilesAscending = true;
 
-  logsHeaders.forEach((header, index) => {
-    if (index < logsHeaders.length) { // Exclude last header
+  filesHeaders.forEach((header, index) => {
+    if (index < filesHeaders.length) { // Exclude last header
       header.addEventListener('click', function() {
         const sortBy = this.getAttribute('data-sort-by');
 
-        if (sortBy === currentLogsSortColumn) {
-          isLogsAscending = !isLogsAscending;
+        if (sortBy === currentFilesSortColumn) {
+          isFilesAscending = !isFilesAscending;
         } else {
-          logsHeaders.forEach(header => {
+          filesHeaders.forEach(header => {
             header.classList.remove('arrow-up', 'arrow-down');
           });
-          currentLogsSortColumn = sortBy;
-          isLogsAscending = true;
+          currentFilesSortColumn = sortBy;
+          isFilesAscending = true;
         }
 
-        if (isLogsAscending) {
+        if (isFilesAscending) {
           this.classList.add('arrow-up');
           this.classList.remove('arrow-down');
           ASCorDESC = "ASC";
@@ -377,7 +333,7 @@ document.addEventListener("DOMContentLoaded", function() {
           this.classList.remove('arrow-up');
           ASCorDESC = "DESC";
         }
-        populateLogsTable(currentLogsSortColumn, ASCorDESC);
+        populateFilesTable(currentFilesSortColumn, ASCorDESC);
       });
     }
   });

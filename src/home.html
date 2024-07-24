@@ -25,7 +25,7 @@
 
     <ul>
         <li><a href="#" onclick="showDashboard('Backup Requests')">Backup Requests</a></li>
-        <li><a href="#" onclick="showDashboard('See Logs')">See Logs</a></li>
+        <li><a href="#" onclick="showDashboard('Backup Files')">Backup Files</a></li>
         <li><a href="#" onclick="showDashboard('Take Backup')">Take Backup</a></li>
         <li><a href="#" onclick="logout()">Log out</a></li>
 
@@ -71,7 +71,7 @@
 
     </div>
 
-    <div class="dashboard" id="seelogs" style="display: none;">
+    <div class="dashboard" id="backupfiles" style="display: none;">
         <div class="table-container" id="logstable">
             <table class="sortable-table" >
                 <thead> 
@@ -79,7 +79,7 @@
                         <th data-sort-by="s.location">Location</th>
                         <th data-sort-by="b.backupDate">Date</th>
                         <th>Time</th>
-                        <th>View Logs</th>
+                        <th></th>
                       </tr>
                     </tr>
                 </thead>
@@ -87,12 +87,6 @@
             </table>
         </div>
 
-        <div id="popup" class="popup">
-            <span class="close" id="closePopup">&times;</span>
-            <div class="popup-content">
-                <p id="popup-content"></p>
-            </div>
-          </div>
     </div>
 
     <div class="dashboard" id="takebackup" style="display: none;">

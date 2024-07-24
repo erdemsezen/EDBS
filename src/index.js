@@ -5,20 +5,10 @@ const bodyParser = require('body-parser');
 const conn = require('./db_connection.js');
 const jwt = require('jsonwebtoken');
 const nocache = require("nocache");
-// const multer = require("multer");
 const fileUpload = require('express-fileupload');
 require('dotenv').config();
 const jwtSecret = process.env.JWT_SECRET;
 let currentUser = "";
-
-// const storage = multer.diskStorage({
-//   destination : function(request, file, callback) {
-//     callback(null, '/uploads');
-//   },
-//   filename : function(request, file, callback) {
-//     callback(null, file.filename = '-' + Date.now() + path.extname(file.originalname));
-//   }
-// })
 
 function verifyToken(req, res, next) {
   const token = req.headers.authorization;
@@ -90,6 +80,7 @@ app.post('/', function(req, res) {
   );
 });
 
+
 app.post('/profile', (req, res) => {
   conn.query("SELECT u.firstName, u.lastName, u.position, u.imagePath, s.location FROM edbs.users u JOIN edbs.servers s ON u.serverID = s.serverID WHERE u.username = ?",
     [currentUser], 
@@ -108,20 +99,20 @@ app.get('/getJWTData', verifyToken, (req, res) => {
   res.json({user: req.user});
 });
 
-// app.post('/upload', upload.single('file'), (req, res) => {
-//   res.json({ filename : req.file.filename });
-// })
-
 app.post('/upload', async function(req, res, next) {
   if (!req.files || !req.files.file) {
     return res.status(422).send("No files were uploaded");
   }
   const uploadedFile = req.files.file;
-    // Print information about the file to the console
-    console.log(`File Name: ${uploadedFile.name}`);
-    console.log(`File Size: ${uploadedFile.size}`);
-    console.log(`File MD5 Hash: ${uploadedFile.md5}`);
-    console.log(`File Mime Type: ${uploadedFile.mimetype}`);
+  const uploadPath = path.join(__dirname, '../uploads', uploadedFile.name);
+
+  // Upload the file to DB since db is local path is also local in this case
+  uploadedFile.mv(uploadPath, function(err) {
+    if (err) {
+      console.error(err);
+      return res.status(500).send(err);
+    }
+  });
   
   let query = "START TRANSACTION; "+
   "INSERT INTO edbs.backups (log, backupDate, serverID) VALUES (?, NOW(), (SELECT serverID FROM edbs.users WHERE username = ?)); "+
@@ -130,14 +121,45 @@ app.post('/upload', async function(req, res, next) {
   "VALUES (@backupID, ?); "+
   "COMMIT;"
 
-  conn.query(query, [currentUser, currentUser], (err, results, fields) => {
-  if (err) {
-  console.error('Error querying MySQL:', err);
-  res.status(500).json({ error: 'Internal Server Error' });
-  return;
-  }
+  conn.query(query, [uploadPath, currentUser, currentUser], (err, results, fields) => {
+    if (err) {
+      console.error('Error querying MySQL:', err);
+      res.status(500).json({ error: 'Internal Server Error' });
+      return;
+    }
+    res.json("ok");
+  });
+});
 
-})
+app.get('/download/:backupId', (req, res) => {
+  const backupId = req.params.backupId;
+
+  // Query to get backup file location from database
+  const query = `SELECT log FROM edbs.backups WHERE backupID = ?`;
+  conn.query(query, [backupId], (err, results) => {
+      if (err) {
+          console.error(err);
+          return res.status(500).send('Error retrieving backup information');
+      }
+
+      if (results.length === 0) {
+          return res.status(404).send('Backup not found');
+      }
+
+      const backupLocation = results[0].log;
+
+      // Stream the file to the client for download
+      const file = path.join(backupLocation);
+      res.download(file, (err) => {
+          if (err) {
+              console.error(err);
+              res.status(500).send('Error downloading file');
+          } else {
+              console.log('File successfully downloaded');
+          }
+      });
+  });
+});
 
 app.get('/admin', async(req, res) => {
   res.sendFile(path.join(__dirname, 'admin.html'));
@@ -169,7 +191,7 @@ app.post('/admin/backupRequestTable', (req, res) => {
 
 }); 
 
-app.post('/admin/logsTable', (req, res) => {
+app.post('/admin/filesTable', (req, res) => {
   const col = req.body.col;
   const order = req.body.order;
   
@@ -193,20 +215,6 @@ app.post('/admin/logsTable', (req, res) => {
     res.json(results);
   });
 }); 
-
-app.post('/admin/getlog'), (req, res) => {
-  conn.query("SELECT log FROM edbs.servers WHERE backupID = ?"),
-  [backupID],
-  (err, results, fields) => {
-    if (err) {
-      console.error('Error querying MySQL:', err);
-      res.status(500).json({ error: 'Internal Server Error' });
-      return;
-    }
-    console.log(results[0]);
-    res.json(results[0]);
-  }
-};
 
 app.post('/admin/deleteRequest', (req, res) =>{
   const requestID = req.body.requestID;
@@ -342,7 +350,7 @@ app.post('/home/backupRequestTable', (req, res) => {
 
 }); 
 
-app.post('/home/logsTable', (req, res) => {
+app.post('/home/filesTable', (req, res) => {
   const col = req.body.col;
   const order = req.body.order;
   
