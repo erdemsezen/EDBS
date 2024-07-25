@@ -47,7 +47,7 @@ app.post('/', function(req, res) {
   const username = req.body.username;
   const password = req.body.password;
 
-    conn.query("SELECT * FROM edbs.users WHERE username = ? AND pass = ?", 
+    conn.query("SELECT * FROM users WHERE username = ? AND pass = ?", 
       [username, password],
       function(err, results, fields) {
         if (err) {
@@ -82,7 +82,7 @@ app.post('/', function(req, res) {
 
 
 app.post('/profile', (req, res) => {
-  conn.query("SELECT u.firstName, u.lastName, u.position, u.imagePath, s.location FROM edbs.users u JOIN edbs.servers s ON u.serverID = s.serverID WHERE u.username = ?",
+  conn.query("SELECT u.firstName, u.lastName, u.position, u.imagePath, s.location FROM users u JOIN servers s ON u.serverID = s.serverID WHERE u.username = ?",
     [currentUser], 
     (err, results, fields) => {
     if (err) {
@@ -115,9 +115,9 @@ app.post('/upload', async function(req, res, next) {
   });
   
   let query = "START TRANSACTION; "+
-  "INSERT INTO edbs.backups (log, backupDate, serverID) VALUES (?, NOW(), (SELECT serverID FROM edbs.users WHERE username = ?)); "+
-  "SET @backupID = (SELECT MAX(backupID) FROM edbs.backups); "+
-  "INSERT INTO edbs.backupusers (backupID, username) "+
+  "INSERT INTO backups (log, backupDate, serverID) VALUES (?, NOW(), (SELECT serverID FROM users WHERE username = ?)); "+
+  "SET @backupID = (SELECT MAX(backupID) FROM backups); "+
+  "INSERT INTO backupusers (backupID, username) "+
   "VALUES (@backupID, ?); "+
   "COMMIT;"
 
@@ -135,7 +135,7 @@ app.get('/download/:backupId', (req, res) => {
   const backupId = req.params.backupId;
 
   // Query to get backup file location from database
-  const query = `SELECT log FROM edbs.backups WHERE backupID = ?`;
+  const query = `SELECT log FROM backups WHERE backupID = ?`;
   conn.query(query, [backupId], (err, results) => {
       if (err) {
           console.error(err);
@@ -169,7 +169,7 @@ app.post('/admin/backupRequestTable', (req, res) => {
   const col = req.body.col;
   const order = req.body.order;
   
-  let query = "SELECT r.requestID, r.message, r.requestDate, s.location, r.status FROM edbs.requests r JOIN edbs.servers s ON r.serverID = s.serverID";
+  let query = "SELECT r.requestID, r.message, r.requestDate, s.location, r.status FROM requests r JOIN servers s ON r.serverID = s.serverID";
   
   if (col !== "any" && order !== "any") {
     query += ` ORDER BY ${col} ${order}`;
@@ -195,7 +195,7 @@ app.post('/admin/filesTable', (req, res) => {
   const col = req.body.col;
   const order = req.body.order;
   
-  let query = "SELECT b.backupID, b.backupDate, s.location, bu.username FROM edbs.backups b JOIN edbs.servers s ON b.serverID = s.serverID JOIN edbs.backupusers bu ON b.backupID = bu.backupID";
+  let query = "SELECT b.backupID, b.backupDate, s.location, bu.username FROM backups b JOIN servers s ON b.serverID = s.serverID JOIN backupusers bu ON b.backupID = bu.backupID";
 
   if (col !== "any" && order !== "any") {
     query += ` ORDER BY ${col} ${order}`;
@@ -219,7 +219,7 @@ app.post('/admin/filesTable', (req, res) => {
 app.post('/admin/deleteRequest', (req, res) =>{
   const requestID = req.body.requestID;
 
-  conn.query('DELETE FROM edbs.requests WHERE requestID = ?', [requestID], (error, results, fields) => {
+  conn.query('DELETE FROM requests WHERE requestID = ?', [requestID], (error, results, fields) => {
     if (error) {
       console.error('Error deleting row from database:', error);
       res.status(500).json({ error: 'Error deleting row from database' });
@@ -234,7 +234,7 @@ app.post('/admin/periodicRequests', (req, res) => {
   const col = req.body.col;
   const order = req.body.order;
 
-  let query = "SELECT r.requestID, r.message, s.location, r.period, r.requestDate AS nextDate FROM edbs.requests r JOIN edbs.servers s ON r.serverID = s.serverID WHERE r.period != 'None'"
+  let query = "SELECT r.requestID, r.message, s.location, r.period, r.requestDate AS nextDate FROM requests r JOIN servers s ON r.serverID = s.serverID WHERE r.period != 'None'"
     
   if (col !== "any" && order !== "any") {
     query += ` ORDER BY ${col} ${order}`;
@@ -288,7 +288,7 @@ app.post('/admin/makerequest', (req, res) => {
   const message = req.body.message;
   const requestDate = req.body.requestDate;
 
-  conn.query("INSERT INTO edbs.requests (message, requestDate, status, period, serverID) VALUES (?, ?, 'Pending', ?, ?)",
+  conn.query("INSERT INTO requests (message, requestDate, status, period, serverID) VALUES (?, ?, 'Pending', ?, ?)",
     [message, requestDate, period, serverID],
     function(err, results, fields) {
       if (err) {
@@ -304,9 +304,9 @@ app.post('/admin/makerequest', (req, res) => {
 
 app.post('/takeBackup', (req, res) => { 
   let query = "START TRANSACTION; "+
-              "INSERT INTO edbs.backups (log, backupDate, serverID) VALUES ('AAAAA', NOW(), (SELECT serverID FROM edbs.users WHERE username = ?)); "+
-              "SET @backupID = (SELECT MAX(backupID) FROM edbs.backups); "+
-              "INSERT INTO edbs.backupusers (backupID, username) "+
+              "INSERT INTO backups (log, backupDate, serverID) VALUES ('AAAAA', NOW(), (SELECT serverID FROM users WHERE username = ?)); "+
+              "SET @backupID = (SELECT MAX(backupID) FROM backups); "+
+              "INSERT INTO backupusers (backupID, username) "+
               "VALUES (@backupID, ?); "+
               "COMMIT;"
 
@@ -328,7 +328,7 @@ app.post('/home/backupRequestTable', (req, res) => {
   const col = req.body.col;
   const order = req.body.order;
   
-  let query = "SELECT r.requestID, r.message, r.requestDate, r.status FROM edbs.requests r JOIN edbs.users u ON r.serverID = u.serverID WHERE u.username = ?";
+  let query = "SELECT r.requestID, r.message, r.requestDate, r.status FROM requests r JOIN users u ON r.serverID = u.serverID WHERE u.username = ?";
   
   if (col !== "any" && order !== "any") {
     query += ` ORDER BY ${col} ${order}`;
@@ -354,7 +354,7 @@ app.post('/home/filesTable', (req, res) => {
   const col = req.body.col;
   const order = req.body.order;
   
-  let query = "SELECT b.backupID, b.backupDate, s.location FROM edbs.backups b JOIN edbs.servers s ON b.serverID = s.serverID JOIN edbs.backupusers bu ON b.backupID = bu.backupID JOIN edbs.users u ON bu.username = u.username WHERE u.username = ?";
+  let query = "SELECT b.backupID, b.backupDate, s.location FROM backups b JOIN servers s ON b.serverID = s.serverID JOIN backupusers bu ON b.backupID = bu.backupID JOIN users u ON bu.username = u.username WHERE u.username = ?";
 
   if (col !== "any" && order !== "any") {
     query += ` ORDER BY ${col} ${order}`;

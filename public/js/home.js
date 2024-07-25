@@ -169,7 +169,7 @@ function populateBackupRequestsTable(col, order) {
         const row = document.createElement('tr');
         row.id = request.requestID
 
-        let buttonType = "'sendBackup(this)'>SEND BACKUP";
+        let buttonType = "<button onclick='sendBackup(this)'>SEND BACKUP</button>";
         let backgroundColor = '';
         let yaziRenk = '';
         switch (request.status) {
@@ -187,7 +187,7 @@ function populateBackupRequestsTable(col, order) {
           case 'Completed':
             backgroundColor = 'MediumSeaGreen';
             yaziRenk = 'White';
-            buttonType = "'deleteRow(this)'>DELETE"
+            buttonType = "---"
             break;
           default:
             backgroundColor = 'white'; // Default or other statuses
@@ -200,7 +200,7 @@ function populateBackupRequestsTable(col, order) {
           <td>${request.message}</td>
           <td>${request.requestDate.split("T")[0]}</td>
           <td>${request.status}</td>
-          <td><button onclick=${buttonType}</button></td>
+          <td class="button">${buttonType}</td>
         `;
         tableBody.appendChild(row);
       });

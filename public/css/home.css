@@ -291,3 +291,7 @@ body {
   #dropzone.hover {
     background-color: #f0f0f0;
   }
+
+  .button {
+    text-align: center;
+  }
