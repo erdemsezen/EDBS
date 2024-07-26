@@ -80,7 +80,6 @@ app.post('/', function(req, res) {
   );
 });
 
-
 app.post('/profile', (req, res) => {
   conn.query("SELECT u.firstName, u.lastName, u.position, u.imagePath, s.location FROM users u JOIN servers s ON u.serverID = s.serverID WHERE u.username = ?",
     [currentUser], 
@@ -103,50 +102,70 @@ app.post('/upload', async function(req, res, next) {
   if (!req.files || !req.files.file) {
     return res.status(422).send("No files were uploaded");
   }
-  const uploadedFile = req.files.file;
-  const uploadPath = path.join(__dirname, '../uploads', uploadedFile.name);
 
-  // Upload the file to DB since db is local path is also local in this case
-  uploadedFile.mv(uploadPath, function(err) {
-    if (err) {
-      console.error(err);
-      return res.status(500).send(err);
-    }
-  });
-  
-  let query = "START TRANSACTION; "+
-  "INSERT INTO backups (log, backupDate, serverID) VALUES (?, NOW(), (SELECT serverID FROM users WHERE username = ?)); "+
-  "SET @backupID = (SELECT MAX(backupID) FROM backups); "+
-  "INSERT INTO backupusers (backupID, username) "+
-  "VALUES (@backupID, ?); "+
-  "COMMIT;"
+  let backupID = "";
+  let uploadPath;
 
-  conn.query(query, [uploadPath, currentUser, currentUser], (err, results, fields) => {
-    if (err) {
-      console.error('Error querying MySQL:', err);
-      res.status(500).json({ error: 'Internal Server Error' });
+  conn.query("SELECT MAX(backupID) AS max_backupID FROM backups;", 
+  (err, results, fields) => {
+      if (err) {
+        console.error('Error querying MySQL:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
       return;
     }
-    res.json("ok");
-  });
+    const requestID = req.body.requestID;
+    backupID = (results[0].max_backupID + 1).toString();
+    const uploadedFile = req.files.file;
+    const ext = uploadedFile.name.split('.').pop();
+    uploadPath = "uploads/" + backupID + "." + ext;
+    const absoluteUploadPath = path.join(__dirname, '..', uploadPath);
+    // Upload the file to DB since db is local path is also local in this case
+    uploadedFile.mv(absoluteUploadPath, function(err) {
+      if (err) {
+        console.error(err);
+        return res.status(500).send(err);
+      }
+    })
+
+    conn.query("INSERT INTO backups (fileLocation, backupDate, username) VALUES (?, NOW(), ?)", 
+    [uploadPath, currentUser], (err, results, fields) => {
+      if (err) {
+        console.error('Error querying MySQL:', err);
+        res.status(500).json({ error: 'Internal Server Error' });
+        return;
+      }
+
+      if(requestID != "null") {
+        conn.query("UPDATE requests SET status = 'Completed' WHERE requestID = ?",
+        [requestID], (err, results, fields) => {
+          if (err) {
+            console.error('Error querying MySQL:', err);
+            res.status(500).json({ error: 'Internal Server Error' });
+            return;
+          }
+        });
+
+      }
+    });
+  })
+  res.status(204).end();
 });
 
 app.get('/download/:backupId', (req, res) => {
   const backupId = req.params.backupId;
 
   // Query to get backup file location from database
-  const query = `SELECT log FROM backups WHERE backupID = ?`;
+  const query = `SELECT fileLocation FROM backups WHERE backupID = ?`;
   conn.query(query, [backupId], (err, results) => {
       if (err) {
           console.error(err);
           return res.status(500).send('Error retrieving backup information');
       }
-
       if (results.length === 0) {
           return res.status(404).send('Backup not found');
       }
 
-      const backupLocation = results[0].log;
+      const backupLocation = results[0].fileLocation;
 
       // Stream the file to the client for download
       const file = path.join(backupLocation);
@@ -195,7 +214,7 @@ app.post('/admin/filesTable', (req, res) => {
   const col = req.body.col;
   const order = req.body.order;
   
-  let query = "SELECT b.backupID, b.backupDate, s.location, bu.username FROM backups b JOIN servers s ON b.serverID = s.serverID JOIN backupusers bu ON b.backupID = bu.backupID";
+  let query = "SELECT b.backupID, b.backupDate, u.username, s.location FROM backups b JOIN users u ON b.username = u.username JOIN servers s ON u.serverID = s.serverID;";
 
   if (col !== "any" && order !== "any") {
     query += ` ORDER BY ${col} ${order}`;
@@ -328,7 +347,7 @@ app.post('/home/backupRequestTable', (req, res) => {
   const col = req.body.col;
   const order = req.body.order;
   
-  let query = "SELECT r.requestID, r.message, r.requestDate, r.status FROM requests r JOIN users u ON r.serverID = u.serverID WHERE u.username = ?";
+  let query = "SELECT r.requestID, r.message, r.requestDate, r.username, r.status FROM requests r JOIN users u ON r.serverID = u.serverID WHERE u.username = ?";
   
   if (col !== "any" && order !== "any") {
     query += ` ORDER BY ${col} ${order}`;
@@ -354,7 +373,7 @@ app.post('/home/filesTable', (req, res) => {
   const col = req.body.col;
   const order = req.body.order;
   
-  let query = "SELECT b.backupID, b.backupDate, s.location FROM backups b JOIN servers s ON b.serverID = s.serverID JOIN backupusers bu ON b.backupID = bu.backupID JOIN users u ON bu.username = u.username WHERE u.username = ?";
+  let query = "SELECT b.backupID, b.backupDate, s.location FROM backups b JOIN users u ON b.username = u.username JOIN servers s ON u.serverID = s.serverID WHERE u.username = ?";
 
   if (col !== "any" && order !== "any") {
     query += ` ORDER BY ${col} ${order}`;

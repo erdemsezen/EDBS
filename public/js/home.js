@@ -23,15 +23,10 @@ function downloadFile(backupID) {
 }
 
 function showDashboard(dashboardName) {
-    // Hide all dashboards
-    // var dashboards = document.getElementsByClassName('dashboard');
-    // for (var i = 0; i < dashboards.length; i++) {
-    //     dashboards[i].style.display = 'none';
-    // }
 
   document.getElementById('backuprequests').style.display = 'none';
   document.getElementById('backupfiles').style.display = 'none';
-  document.getElementById('takebackup').style.display = 'none';
+  document.getElementById('uploadbackup').style.display = 'none';
   
   // Display the selected dashboard
   var selectedDashboard = document.getElementById(dashboardName.toLowerCase().replace(' ', ''));
@@ -43,84 +38,86 @@ function showDashboard(dashboardName) {
   document.getElementById('dashboardTitle').textContent = dashboardName;
 }
 
-function sendBackup(button) {
+function sendBackup(id) {
   const popup = document.getElementById('backupPopup');
+  const overlay = document.getElementById('overlay1');
+  const requestID = document.getElementById('requestID');
+  requestID.value = id;
+
   popup.style.display = 'block';
+  overlay.style.display = 'block';
 
   const closePopup = document.getElementById('closeBackupPopup');
-  closePopup.onclick = function() { popup.style.display = 'none'; };
+  closePopup.onclick = function() { 
+    popup.style.display = 'none'; 
+    overlay.style.display = 'none'; 
+  };
 
-  var dropZone = document.getElementById('dropzone');
-
-  dropZone.addEventListener("dragover", (event) => {
-    event.preventDefault();
-    dropZone.classList.add('hover');
+  overlay.addEventListener('click', (event) => {
+    // Check if the click is outside the popup-content
+    if (!popup.contains(event.target) && event.target !== closePopupButton) {
+      requestID.value = "null";
+      closePopup();
+    }
   });
 
-  dropZone.addEventListener('dragleave', (event) => {
-    event.preventDefault();
-    dropZone.classList.remove('hover');
-  });
-
-  dropZone.addEventListener('drop', (event) => {
-    event.preventDefault();
-    dropZone.classList.remove('hover');
-    var files = event.dataTransfer.files;
-    handlesFiles(files);
-  });
-
-  function handlesFiles(files) {
-    files.forEach(file => {
-      uploadFile(file);
-    })
-  }
-
-  function uploadFile(file) {
-    var statusMessage = document.getElementById('statusMessage');
-    var formData = new FormData();
-    formData.append('file', file);
-
-    fetch('/upload', {
-      method: 'POST',
-      body: formData
-    }).then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json()
-    }).then(data => {
-      statusMessage.innerHTML = 'Upload Successful';
-    }).catch(error => {
-      console.error('Error:', error);
-      statusMessage.innerHTML = 'Upload Failed';
-    })
-  }
 }
 
-function takeBackup(button) {
+function uploadBackup(button) {
+  const popup = document.getElementById('uploadPopup');
+  const overlay = document.getElementById('overlay');
+  popup.style.display = 'block';
+  overlay.style.display = 'block';
 
-  var statusMessage = document.getElementById('statusMessage');
-  fetch('/takeBackup', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-  }).then(response => {
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
+  const closePopup = document.getElementById('closeUploadPopup');
+  closePopup.onclick = function() { 
+    popup.style.display = 'none'; 
+    overlay.style.display = 'none'; 
+  };
+
+  overlay.addEventListener('click', (event) => {
+    // Check if the click is outside the popup-content
+    if (!popup.contains(event.target) && event.target !== closePopupButton) {
+        closePopup();
     }
-    return response.json();
-  }).then(data => {
-    statusMessage.innerHTML = 'Backup successfully taken.';
-  }).catch(error => {
-    console.error('Error:', error);
-    statusMessage.innerHTML = 'Could not take backup.';
   });
+
 }
 
 function logout() {
     localStorage.removeItem('token');
     window.location.href = "/";
+}
+
+function setupFormSubmitHandlers() {
+  // Handle Backup Form Submission
+  const uploadForm = document.getElementById('uploadForm');
+  if (uploadForm) {
+      uploadForm.addEventListener('submit', function(event) {
+          event.preventDefault(); // Prevent default form submission
+          // Perform the form submission using fetch or another method
+          const formData = new FormData(uploadForm);
+
+          fetch(uploadForm.action, {
+              method: uploadForm.method,
+              body: formData
+          }).then(response => {
+              if (response.ok) {
+                const popup = document.getElementById("backupPopup");
+                const overlay = document.getElementById("overlay1");
+                popup.style.display = 'none';
+                overlay.style.display = 'none';
+              } else {
+                  console.error('Upload failed:', response.statusText);
+              }
+              // populateBackupRequestsTable('any', 'any');
+              window.location.reload();
+          }).catch(error => {
+              console.error('Error:', error);
+          });
+          window.location.reload();
+      });
+  }
 }
   
 function populateProfilePanel() {
@@ -150,63 +147,65 @@ function populateProfilePanel() {
 }
 
 function populateBackupRequestsTable(col, order) {
-    fetch('/home/backupRequestTable', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ col:col, order:order })
-    }).then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
-    }).then(data => {
-      const tableBody = document.querySelector('#backuprequests tbody');
-      tableBody.innerHTML = ''; // Clear existing rows
-    
-      data.forEach(request => {
-        const row = document.createElement('tr');
-        row.id = request.requestID
-
-        let buttonType = "<button onclick='sendBackup(this)'>SEND BACKUP</button>";
-        let backgroundColor = '';
-        let yaziRenk = '';
-        switch (request.status) {
-          case 'Not Completed':
-            backgroundColor = 'orangered';
-            yaziRenk = 'White';
-            break;
-          case 'Pending':
-            backgroundColor = 'lightyellow'; // Adjust color as needed
-            break;
-          case 'Error':
-            backgroundColor = 'orange'; // Adjust color as needed
-            yaziRenk = 'White';
-            break;
-          case 'Completed':
-            backgroundColor = 'MediumSeaGreen';
-            yaziRenk = 'White';
-            buttonType = "---"
-            break;
-          default:
-            backgroundColor = 'white'; // Default or other statuses
-            break;
-        }
+  fetch('/home/backupRequestTable', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ col:col, order:order })
+  }).then(response => {
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+    return response.json();
+  }).then(data => {
+    const tableBody = document.querySelector('#backuprequests tbody');
+    tableBody.innerHTML = ''; // Clear existing rows
   
-        row.style.backgroundColor = backgroundColor;
-        row.style.color = yaziRenk;
-        row.innerHTML = `
-          <td>${request.message}</td>
-          <td>${request.requestDate.split("T")[0]}</td>
-          <td>${request.status}</td>
-          <td class="button">${buttonType}</td>
-        `;
-        tableBody.appendChild(row);
-      });
-    }).catch(error => {
-      console.error('Error:', error);
+    data.forEach(request => {
+      const row = document.createElement('tr');
+      row.id = request.requestID
+
+      let buttonType = "---"
+      let backgroundColor = '';
+      let yaziRenk = '';
+      switch (request.status) {
+        case 'Not Completed':
+          backgroundColor = 'orangered';
+          yaziRenk = 'White';
+          break;
+        case 'Pending':
+          backgroundColor = 'lightyellow'; // Adjust color as needed
+          buttonType = `<button onclick='sendBackup(${request.requestID})'>SEND BACKUP</button>`;
+          break;
+        case 'Error':
+          backgroundColor = 'orange'; // Adjust color as needed
+          yaziRenk = 'White';
+          buttonType = `<button onclick='sendBackup(${request.requestID})'>SEND BACKUP AGAIN</button>`;
+          break;
+        case 'Completed':
+          backgroundColor = 'MediumSeaGreen';
+          yaziRenk = 'White';
+          break;
+        default:
+          backgroundColor = 'white'; // Default or other statuses
+          break;
+      }
+
+      row.style.backgroundColor = backgroundColor;
+      row.style.color = yaziRenk;
+      row.innerHTML = `
+        <td>${request.message}</td>
+        <td>${request.requestDate.split("T")[0]}</td>
+        <td>${request.username}</td>
+        <td>${request.status}</td>
+        <td class="button">${buttonType}</td>
+      `;
+      tableBody.appendChild(row);
     });
+  }).catch(error => {
+    console.error('Error:', error);
+  });
 }
 
 function populateFilesTable(col, order) {
@@ -244,6 +243,7 @@ function populateFilesTable(col, order) {
 populateProfilePanel();
 populateBackupRequestsTable('any', 'any');
 populateFilesTable('any', 'any');
+setupFormSubmitHandlers();
 
 document.addEventListener("DOMContentLoaded", function() {
   // Backup Requests table sorting logic
@@ -254,65 +254,64 @@ document.addEventListener("DOMContentLoaded", function() {
   let ASCorDESC = "ASC";
 
   backupHeaders.forEach(header => {
-    header.addEventListener('click', function() {
-      const sortBy = this.getAttribute('data-sort-by');
+      header.addEventListener('click', function() {
+          const sortBy = this.getAttribute('data-sort-by');
 
-      if (sortBy === currentBackupSortColumn) {
-        isBackupAscending = !isBackupAscending; 
-      } else {
-        backupHeaders.forEach(header => {
-          header.classList.remove('arrow-up', 'arrow-down');
-        });
-        currentBackupSortColumn = sortBy;
-        isBackupAscending = true;
-      }
+          if (sortBy === currentBackupSortColumn) {
+              isBackupAscending = !isBackupAscending; 
+          } else {
+              backupHeaders.forEach(header => {
+                  header.classList.remove('arrow-up', 'arrow-down');
+              });
+              currentBackupSortColumn = sortBy;
+              isBackupAscending = true;
+          }
 
-      if (isBackupAscending) {
-        this.classList.add('arrow-up');
-        this.classList.remove('arrow-down');
-        ASCorDESC = "ASC"
-      } else {
-        this.classList.add('arrow-down');
-        this.classList.remove('arrow-up');
-        ASCorDESC = "DESC"
-      }
-      populateBackupRequestsTable(currentBackupSortColumn, ASCorDESC);
-    });
+          if (isBackupAscending) {
+              this.classList.add('arrow-up');
+              this.classList.remove('arrow-down');
+              ASCorDESC = "ASC";
+          } else {
+              this.classList.add('arrow-down');
+              this.classList.remove('arrow-up');
+              ASCorDESC = "DESC";
+          }
+          populateBackupRequestsTable(currentBackupSortColumn, ASCorDESC);
+      });
   });
 
-  // See Files table sorting logic
+  // Files table sorting logic
   const filesTable = document.querySelector('#backupfiles .sortable-table');
   const filesHeaders = filesTable.querySelectorAll('th[data-sort-by]');
   let currentFilesSortColumn = null;
   let isFilesAscending = true;
 
   filesHeaders.forEach((header, index) => {
-    if (index < filesHeaders.length) { // Exclude last header
-      header.addEventListener('click', function() {
-        const sortBy = this.getAttribute('data-sort-by');
+      if (index < filesHeaders.length) { // Exclude last header
+          header.addEventListener('click', function() {
+              const sortBy = this.getAttribute('data-sort-by');
 
-        if (sortBy === currentFilesSortColumn) {
-          isFilesAscending = !isFilesAscending;
-        } else {
-          filesHeaders.forEach(header => {
-            header.classList.remove('arrow-up', 'arrow-down');
+              if (sortBy === currentFilesSortColumn) {
+                  isFilesAscending = !isFilesAscending;
+              } else {
+                  filesHeaders.forEach(header => {
+                      header.classList.remove('arrow-up', 'arrow-down');
+                  });
+                  currentFilesSortColumn = sortBy;
+                  isFilesAscending = true;
+              }
+
+              if (isFilesAscending) {
+                  this.classList.add('arrow-up');
+                  this.classList.remove('arrow-down');
+                  ASCorDESC = "ASC";
+              } else {
+                  this.classList.add('arrow-down');
+                  this.classList.remove('arrow-up');
+                  ASCorDESC = "DESC";
+              }
+              populateFilesTable(currentFilesSortColumn, ASCorDESC);
           });
-          currentFilesSortColumn = sortBy;
-          isFilesAscending = true;
-        }
-
-        if (isFilesAscending) {
-          this.classList.add('arrow-up');
-          this.classList.remove('arrow-down');
-          ASCorDESC = "ASC";
-        } else {
-          this.classList.add('arrow-down');
-          this.classList.remove('arrow-up');
-          ASCorDESC = "DESC";
-        }
-        populateFilesTable(currentFilesSortColumn, ASCorDESC);
-      });
-    }
+      }
   });
-
 });
