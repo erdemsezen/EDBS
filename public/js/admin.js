@@ -19,10 +19,13 @@ if (!token) {
 }
 
 function showDashboard(dashboardName) {
+  populateBackupRequestsTable('any', 'any');
+  populateFilesTable('any', 'any');
+  populatePeriodicTable('any', 'any');  
   document.getElementById('backuprequests').style.display = 'none';
   document.getElementById('makerequest').style.display = 'none';
   document.getElementById('backupfiles').style.display = 'none';
-  document.getElementById('takebackup').style.display = 'none';
+  document.getElementById('uploadbackup').style.display = 'none';
   
   // Display the selected dashboard
   var selectedDashboard = document.getElementById(dashboardName.toLowerCase().replace(' ', ''));
@@ -34,26 +37,6 @@ function showDashboard(dashboardName) {
   document.getElementById('dashboardTitle').textContent = dashboardName;
 }
 
-function takeBackup(button) {
-
-  var statusMessage = document.getElementById('statusMessage');
-  fetch('/takeBackup', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-  }).then(response => {
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
-    }
-    return response.json();
-  }).then(data => {
-    statusMessage.innerHTML = 'Backup successfully taken.';
-  }).catch(error => {
-    console.error('Error:', error);
-    statusMessage.innerHTML = 'Could not take backup.';
-  });
-}
 
 // Log out menu
 function logout() {
@@ -119,6 +102,7 @@ function populateBackupRequestsTable(col, order) {
   }).then(data => {
     const tableBody = document.querySelector('#backuprequests tbody');
     tableBody.innerHTML = ''; // Clear existing rows
+    let buttonType = "";
   
     data.forEach(request => {
       const row = document.createElement('tr');
@@ -142,6 +126,11 @@ function populateBackupRequestsTable(col, order) {
           backgroundColor = 'MediumSeaGreen';
           yaziRenk = 'White';
           break;
+        case 'Waiting Confirmation':
+          buttonType = "<button onclick='confirm(this)>Confirm</button> <button onclick='dontConfirm(this)>Don't Confirm</button>"
+          break;
+        case 'Not Confirmed':
+          break;
         default:
           backgroundColor = 'white'; // Default or other statuses
           break;
@@ -150,13 +139,18 @@ function populateBackupRequestsTable(col, order) {
       row.style.backgroundColor = backgroundColor;
       row.style.color = yaziRenk;
       row.innerHTML = `
+        <td>${request.requestID}</td>
         <td>${request.message}</td>
         <td>${request.requestDate.split("T")[0]}</td>
         <td>${request.location}</td>
         <td>${request.status}</td>
-        <td><button onclick="deleteRow(this)">DELETE</button></td>
+        <td>
+          <button onclick="deleteRow(this)">DELETE</button>
+          ${buttonType}
+          </td>
       `;
       tableBody.appendChild(row);
+      buttonType = "";
     });
   }).catch(error => {
     console.error('Error:', error);
@@ -183,6 +177,7 @@ function populateFilesTable(col, order) {
       const row = document.createElement('tr');
       row.id = request.backupID
       row.innerHTML = `
+        <td>${request.backupID}</td>
         <td>${request.location}</td>
         <td>${request.username}</td>
         <td>${request.backupDate.split("T")[0]}</td>
@@ -269,6 +264,9 @@ populatePeriodicTable('any', 'any');
 
 // Sortable Tables
 document.addEventListener("DOMContentLoaded", function() {
+  populateBackupRequestsTable('any', 'any');
+  populateFilesTable('any', 'any');
+  populatePeriodicTable('any', 'any');  
   // Backup Requests table sorting logic
   const backupTable = document.querySelector('#backuprequests .sortable-table');
   const backupHeaders = backupTable.querySelectorAll('th[data-sort-by]');
@@ -434,10 +432,14 @@ document.getElementById('requestForm').addEventListener('submit', function(submi
     statusMessage.innerHTML = 'Request successfully created.';
     console.log('Request successfully created.');
     document.getElementById("backupMessage").value = "";
+    populateBackupRequestsTable('any', 'any');
+    populateFilesTable('any', 'any');
+    populatePeriodicTable('any', 'any');  
   }).catch(error => {
     console.error('Error:', error);
     statusMessage.innerHTML = 'Could not create request.';
     document.getElementById("backupMessage").value = "";
   });
+  
 });
 

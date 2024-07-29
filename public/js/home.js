@@ -228,6 +228,7 @@ function populateFilesTable(col, order) {
       const row = document.createElement('tr');
       row.id = request.backupID
       row.innerHTML = `
+        <td>${request.backupID}</td>
         <td>${request.location}</td>
         <td>${request.backupDate.split("T")[0]}</td>
         <td>${request.backupDate.split("T")[1].split(".")[0]}</td>

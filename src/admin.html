@@ -27,7 +27,7 @@
         <li><a href="#" onclick="showDashboard('Backup Requests')">Backup Requests</a></li>
         <li><a href="#" onclick="showDashboard('Make Request')">Make Request</a></li>
         <li><a href="#" onclick="showDashboard('Backup Files')">Backup Files</a></li>
-        <li><a href="#" onclick="showDashboard('Take Backup')">Take Backup</a></li>
+        <li><a href="#" onclick="showDashboard('Upload Backup')">Upload Backup</a></li>
         <li><a href="#" onclick="logout()">Log out</a></li>
 
     </ul>
@@ -45,6 +45,7 @@
             <table class="sortable-table">
                 <thead> 
                     <tr>
+                        <th data-sort-by="r.requestID">Request ID</th>
                         <th data-sort-by="r.message">Message</th>
                         <th data-sort-by="r.requestDate">Date</th>
                         <th data-sort-by="s.location">Location</th>
@@ -121,8 +122,9 @@
             <table class="sortable-table" >
                 <thead> 
                     <tr>
+                        <th data-sort-by="b.backupID">Backup ID</th>
                         <th data-sort-by="s.location">Location</th>
-                        <th data-sort-by="bu.username">Taken by</th>
+                        <th data-sort-by="u.username">Taken by</th>
                         <th data-sort-by="b.backupDate">Date</th>
                         <th>Time</th>
                         <th></th>
@@ -135,9 +137,15 @@
 
     </div>
 
-    <div class="dashboard" id="takebackup" style="display: none;">
-        <button onclick="takeBackup(this)">Click this button to take backup.</button>
-        <p id="statusMessage"></p>
+    <div class="dashboard" id="uploadbackup" style="display: none;">
+        <div class="form-container">
+            <h2>File Upload</h2>
+            <form action="/upload" method="POST" enctype="multipart/form-data">
+                <input type="file" name="file" required>
+                <button type="submit">Upload File</button>
+            </form>
+            <p id="statusMessage"></p>
+        </div>
     </div>
 
 </div>

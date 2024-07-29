@@ -136,7 +136,7 @@ app.post('/upload', async function(req, res, next) {
       }
 
       if(requestID != "null") {
-        conn.query("UPDATE requests SET status = 'Completed' WHERE requestID = ?",
+        conn.query("UPDATE requests SET status = 'Pending' WHERE requestID = ?",
         [requestID], (err, results, fields) => {
           if (err) {
             console.error('Error querying MySQL:', err);
@@ -194,6 +194,8 @@ app.post('/admin/backupRequestTable', (req, res) => {
     query += ` ORDER BY ${col} ${order}`;
   }
   
+  const today = new Date().toISOString().split("T")[0];
+
   conn.query(query, (err, results, fields) => {
     if (err) {
       console.error('Error querying MySQL:', err);
@@ -203,6 +205,11 @@ app.post('/admin/backupRequestTable', (req, res) => {
 
     results.forEach(result => {
       result.requestDate.setDate(result.requestDate.getDate() + 1);
+      if (result.requestDate.toISOString().split("T")[0] < today - 1) {
+        conn.query("UPDATE requests r SET r.status = 'Not Completed' WHERE r.requestID = ?",
+          [result.requestID], (error, ress, feds) => {
+          });
+      }
     });
 
     res.json(results); // Send JSON response with backup requests data
@@ -214,7 +221,7 @@ app.post('/admin/filesTable', (req, res) => {
   const col = req.body.col;
   const order = req.body.order;
   
-  let query = "SELECT b.backupID, b.backupDate, u.username, s.location FROM backups b JOIN users u ON b.username = u.username JOIN servers s ON u.serverID = s.serverID;";
+  let query = "SELECT b.backupID, b.backupDate, u.username, s.location FROM backups b JOIN users u ON b.username = u.username JOIN servers s ON u.serverID = s.serverID";
 
   if (col !== "any" && order !== "any") {
     query += ` ORDER BY ${col} ${order}`;
@@ -244,7 +251,6 @@ app.post('/admin/deleteRequest', (req, res) =>{
       res.status(500).json({ error: 'Error deleting row from database' });
       return;
     }
-    console.log(requestID);
     res.status(200).json({ message: 'Row deleted successfully' }); // Send success response
   });
 });
@@ -274,21 +280,59 @@ app.post('/admin/periodicRequests', (req, res) => {
       switch (result.period) {
         case 'Day':
           result.nextDate.setDate(result.nextDate.getDate() + 1);
-          // if(result.nextDate.split("T")[0] == today) {
-          //   result.nextDate.setDate(result.nextDate.getDate() + 1);
-          //   conn.query("INSERT INTO Requests (message, requestDate, status, period, serverID) VALUES (?, ?, ?, ?, ?)",
-          //     [result.message, today, "Not Completed", result.period, result.serverID]
-          //   )
-          // };
+          if (result.nextDate.toISOString().split("T")[0] < today) {
+            conn.query(`UPDATE requests r SET r.requestDate = CURDATE() + INTERVAL 1 DAY, r.status = 'Pending' WHERE r.requestID = ?`,
+              [result.requestID], (err, ress, feds) => {
+                if (err) {
+                  console.error('Error querying MySQL:', err);
+                  res.status(500).json({ error: 'Internal Server Error' });
+                  return;
+                }
+                result.nextDate.setDate(result.nextDate.getDate() + 1);
+              });
+          }
           break;
         case 'Week':
           result.nextDate.setDate(result.nextDate.getDate() + 7);
+          if (result.nextDate.toISOString().split("T")[0] == today) {
+            conn.query(`UPDATE requests r SET r.requestDate = CURDATE() + INTERVAL 7 DAY, r.status = 'Pending' WHERE r.requestID = ?`,
+              [result.requestID], (err, ress, feds) => {
+                if (err) {
+                  console.error('Error querying MySQL:', err);
+                  res.status(500).json({ error: 'Internal Server Error' });
+                  return;
+                }
+                result.nextDate.setDate(result.nextDate.getDate() + 7);
+              });
+          }
           break;
         case 'Month':
           result.nextDate.setMonth(result.nextDate.getMonth() + 1);
+          if (result.nextDate.toISOString().split("T")[0] == today) {
+            conn.query(`UPDATE requests r SET r.requestDate = CURDATE() + INTERVAL 1 MONTH, r.status = 'Pending' WHERE r.requestID = ?`,
+              [result.requestID], (err, ress, feds) => {
+                if (err) {
+                  console.error('Error querying MySQL:', err);
+                  res.status(500).json({ error: 'Internal Server Error' });
+                  return;
+                }
+                result.nextDate.setMonth(result.nextDate.getMonth() + 1);
+              });
+          }
           break;
         case 'Year':
           result.nextDate.setFullYear(result.nextDate.getFullYear() + 1);
+          if (result.nextDate.toISOString().split("T")[0] == today) {
+            conn.query(`UPDATE requests r SET r.requestDate = CURDATE() + INTERVAL 1 YEAR, r.status = 'Pending' WHERE r.requestID = ?`,
+              [result.requestID], (err, ress, feds) => {
+                if (err) {
+                  console.error('Error querying MySQL:', err);
+                  res.status(500).json({ error: 'Internal Server Error' });
+                  return;
+                }
+                result.nextDate.setFullYear(result.nextDate.getFullYear() + 1);
+              });
+          }
           break;
         default:
           // Handle unexpected period (though should not occur as per query WHERE clause)
@@ -303,9 +347,24 @@ app.post('/admin/periodicRequests', (req, res) => {
 
 app.post('/admin/makerequest', (req, res) => {
   const serverID = req.body.serverID;
-  const period = req.body.period;
+  let period = req.body.period;
   const message = req.body.message;
   const requestDate = req.body.requestDate;
+
+  switch(period) {
+    case 'everyday':
+      period = 'Day';
+      break;
+    case 'everyweek':
+      period = 'Week';
+      break;
+    case 'everymonth':
+      period = 'Month';
+      break;
+    case 'everyyear':
+      period = 'Year';
+      break;
+  }
 
   conn.query("INSERT INTO requests (message, requestDate, status, period, serverID) VALUES (?, ?, 'Pending', ?, ?)",
     [message, requestDate, period, serverID],
@@ -319,24 +378,6 @@ app.post('/admin/makerequest', (req, res) => {
     }
   )
 
-});
-
-app.post('/takeBackup', (req, res) => { 
-  let query = "START TRANSACTION; "+
-              "INSERT INTO backups (log, backupDate, serverID) VALUES ('AAAAA', NOW(), (SELECT serverID FROM users WHERE username = ?)); "+
-              "SET @backupID = (SELECT MAX(backupID) FROM backups); "+
-              "INSERT INTO backupusers (backupID, username) "+
-              "VALUES (@backupID, ?); "+
-              "COMMIT;"
-
-    conn.query(query, [currentUser, currentUser], (err, results, fields) => {
-      if (err) {
-        console.error('Error querying MySQL:', err);
-        res.status(500).json({ error: 'Internal Server Error' });
-        return;
-      }
-      res.json("ok");
-    });
 });
 
 app.get('/home', (req, res) => {

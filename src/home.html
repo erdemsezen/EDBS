@@ -78,6 +78,7 @@
             <table class="sortable-table" >
                 <thead> 
                     <tr>
+                        <th data-sort-by="b.backupID">Backup ID</th>
                         <th data-sort-by="s.location">Location</th>
                         <th data-sort-by="b.backupDate">Date</th>
                         <th>Time</th>
@@ -92,23 +93,14 @@
     </div>
 
     <div class="dashboard" id="uploadbackup" style="display: none;">
-        <button onclick="uploadBackup(this)">Click this button to upload backup.</button>
-        <p id="statusMessage"></p>
-
-        <div id="uploadPopup" class="popup">
-            <span class="close" id="closeUploadPopup">&times;</span>
-            <div class="popup-content">
-                <!-- <div id="dropzone">
-                    <p>Drag and drop files here</p>
-                </div> -->
-                <h2>File Upload</h2>
-                <form action="/upload" method="POST" enctype="multipart/form-data">
-                    <input type="file" name="file" required>
-                    <button type="submit">Upload File</button>
-                </form>
-            </div>
+        <div class="form-container">
+            <h2>File Upload</h2>
+            <form action="/upload" method="POST" enctype="multipart/form-data">
+                <input type="file" name="file" required>
+                <button type="submit">Upload File</button>
+            </form>
+            <p id="statusMessage"></p>
         </div>
-        <div id="overlay2" class="overlay"></div>
     </div>
 
 </div>
