@@ -4,18 +4,18 @@ This is a software to be used to make backup requests, and uploads easier.
 Made by Erdem Sezen in summer internship at ENKA.
 
 Currently supported features:
-    - Create backup requests
-    - Upload backup files
-    - Create periodic requests
-    - Download backup files
-    - Delete Backup requests
+    - Create backup requests<br/>
+    - Upload backup files<br/>
+    - Create periodic requests<br/>
+    - Download backup files<br/>
+    - Delete Backup requests<br/>
     - Automatically mark not completed requests
 
 Not implemented features: 
-    - Backup file confirmation upon upload
-    - Searching and filters for tables
-    - User creation UI
-    - Automatic table refresh
+    - Backup file confirmation upon upload<br/>
+    - Searching and filters for tables<br/>
+    - User creation UI<br/>
+    - Automatic table refresh<br/>
     - Automatic server location fill in "Make Request"
 
 Currently software only works on a local MySQL Database. ".env" file can be
@@ -33,4 +33,4 @@ To start it simply install packages in package.json using npm. Then run "npm sta
 
 For further questons mail me at: erdem.sezen@ozu.edu.tr
 
-Last Edited at: 2024-07-29 16:26:51
+Last Edited at: 2024-07-29 16:28:42
