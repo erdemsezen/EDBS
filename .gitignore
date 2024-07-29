@@ -1,6 +1,5 @@
 .vscode/
 .VSCodeCounter/
 node_modules/
-/.env
 /TODO
-uploads/
+/.env
