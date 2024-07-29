@@ -194,7 +194,9 @@ app.post('/admin/backupRequestTable', (req, res) => {
     query += ` ORDER BY ${col} ${order}`;
   }
   
-  const today = new Date().toISOString().split("T")[0];
+  let yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  yesterday = yesterday.toISOString().split("T")[0];
 
   conn.query(query, (err, results, fields) => {
     if (err) {
@@ -204,8 +206,8 @@ app.post('/admin/backupRequestTable', (req, res) => {
     }
 
     results.forEach(result => {
-      result.requestDate.setDate(result.requestDate.getDate() + 1);
-      if (result.requestDate.toISOString().split("T")[0] < today - 1) {
+      // result.requestDate.setDate(result.requestDate.getDate() + 1);
+      if ((result.requestDate.toISOString().split("T")[0] < yesterday) && (result.status == 'Pending')) {
         conn.query("UPDATE requests r SET r.status = 'Not Completed' WHERE r.requestID = ?",
           [result.requestID], (error, ress, feds) => {
           });
@@ -275,7 +277,7 @@ app.post('/admin/periodicRequests', (req, res) => {
     const today = new Date().toISOString().split("T")[0];
 
     results.forEach(result => {
-      result.nextDate.setDate(result.nextDate.getDate() + 1);
+      // result.nextDate.setDate(result.nextDate.getDate() + 1);
 
       switch (result.period) {
         case 'Day':
@@ -402,7 +404,7 @@ app.post('/home/backupRequestTable', (req, res) => {
     }
 
     results.forEach(result => {
-      result.requestDate.setDate(result.requestDate.getDate() + 1);
+      // result.requestDate.setDate(result.requestDate.getDate() + 1);
     });
 
     res.json(results); // Send JSON response with backup requests data
